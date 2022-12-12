@@ -295,7 +295,6 @@ class WGANGP:
 
         ax = plt.gca()
         ax.cla()
-        set_trace()
         ax.plot(meta_data['Iteration'], meta_data['Gloss'], label="Generator")
         ax.plot(meta_data['Iteration'], meta_data['Dloss'], label="Discriminator")
         ax.set_xlabel("Iteration", fontsize=15)
