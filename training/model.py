@@ -40,6 +40,8 @@ class WGANGP:
         self.eta_slice = job_config.get('eta_slice', '20_25')
         self.checkpoint_interval = job_config.get('checkpoint_interval', 1000)
         self.output = os.path.join(job_config.get('output', '../output'), f'{self.particle}_eta_{self.eta_slice}')
+        self.train_folder = os.path.join(self.output, 'train')
+        os.makedirs(self.train_folder, exist_ok=True)
         self.max_iter = tf.constant(job_config.get('max_iter', 1E6), dtype=tf.int64)
         self.cache = job_config.get('cache', True)
         self.fix_seed = job_config.get('fix_seed', True)
@@ -59,8 +61,6 @@ class WGANGP:
         # Prepare for check pointing
         self.saver = tf.train.Checkpoint(generator_optimizer=self.generator_optimizer, discriminator_optimizer=self.discriminator_optimizer, generator=self.G, discriminator=self.D,)
 
-        self.train_folder = os.path.join(self.output, 'train')
-        os.makedirs(self.train_folder, exist_ok=True)
         with open(os.path.join(self.train_folder, 'config.json'), 'w') as fp:
             json.dump({
                 'job_config': dict(sorted(job_config.items())),
@@ -143,6 +143,8 @@ class WGANGP:
 
         generator = Model(inputs=[noise, condition], outputs=G)
         generator.summary()
+        with open(os.path.join(self.train_folder, 'model.txt'), 'w') as fp:
+            generator.summary(print_fn=lambda x: fp.write(x + '\n'))
         return generator
 
     def make_discriminator_model(self):
@@ -166,6 +168,8 @@ class WGANGP:
                 )
 
         model.summary()
+        with open(os.path.join(self.train_folder, 'model.txt'), 'a') as fp:
+            model.summary(print_fn=lambda x: fp.write(x + '\n'))
         return model
 
     @tf.function
