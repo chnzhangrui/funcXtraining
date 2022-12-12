@@ -1,5 +1,5 @@
 import json
-from pdb import set_trace
+import logging
 import numpy as np
 import os, sys, re
 import time
@@ -14,6 +14,8 @@ from tensorflow.keras.models import Model
 from tensorflow.keras import regularizers
 from tensorflow.keras.layers import Wrapper
 from functools import partial
+
+from pdb import set_trace
 
 class WGANGP:
     def __init__(self, job_config, hp_config):
@@ -42,6 +44,7 @@ class WGANGP:
         self.output = os.path.join(job_config.get('output', '../output'), f'{self.particle}_eta_{self.eta_slice}')
         self.train_folder = os.path.join(self.output, 'train')
         os.makedirs(self.train_folder, exist_ok=True)
+        logging.basicConfig(filename=f'{self.train_folder}/train.log', level=logging.INFO, format='%(asctime)s %(message)s')
         self.max_iter = tf.constant(int(job_config.get('max_iter', 1E6)), dtype=tf.int64)
         self.cache = job_config.get('cache', True)
         self.fix_seed = job_config.get('fix_seed', True)
@@ -66,13 +69,13 @@ class WGANGP:
                 'job_config': dict(sorted(job_config.items())),
                 'hp_config': dict(sorted(hp_config.items())),
             }, fp, indent=2)
-        print('configuration', job_config, hp_config)
+        logging.info('configuration %s, %s', json.dumps(job_config), json.dumps(hp_config))
 
     def make_generator_functional_model(self):
         noise = layers.Input(shape=(self.latent_dim,), name="Noise")
         condition = layers.Input(shape=(self.conditional_dim,), name="mycond")
         con = layers.concatenate([noise, condition])
-        print('Use model', self.model)
+        logging.info('Use model', self.model)
         initializer = tf.keras.initializers.he_uniform()
         bias_node = self.use_bias
 
@@ -206,8 +209,7 @@ class WGANGP:
         n_batch = tf.cast(tf.math.floordiv(n_samples, true_batchsize), tf.int64)
         n_shuffles = tf.cast(tf.math.ceil(tf.divide(n_iter, n_batch)), tf.int64)
         ds = tf.data.Dataset.from_tensor_slices((self.X, self.Labels))
-        ds = ds.shuffle(buffer_size=n_samples).repeat(n_shuffles).batch(true_batchsize, drop_remainder=True).prefetch(2)
-        #self.ds = ds
+        ds = ds.shuffle(buffer_size=n_samples).repeat(n_shuffles).batch(true_batchsize, drop_remainder=True).prefetch(4)
         self.ds_iter = iter(ds)
         X_feature_size = tf.gather(tf.shape(self.X), 1)
         Labels_feature_size = tf.gather(tf.shape(self.Labels), 1)
@@ -233,6 +235,7 @@ class WGANGP:
 
     def train(self, X_train, label):
         checkpoint_dir = os.path.join(self.output, 'checkpoints')
+        logging.info(f'Training size X: {X_train.shape}, label: {label.shape}')
         os.makedirs(checkpoint_dir, exist_ok=True)
 
         s_time = time.time()
@@ -256,12 +259,14 @@ class WGANGP:
                     with open(os.path.join(self.train_folder, 'result.json'), 'r') as fp:
                         meta_data = json.load(fp)
                     self.saver.restore(existing_models[0])
-                    print(f"Iter: {iteration} skip, load {existing_models[0]}")
+                    logging.info(f"Iter: {iteration} skip, load {existing_models[0]}")
                     existing_models.remove(existing_models[0])
                 else:
                     e_time = time.time()
                     self.saver.save(file_prefix=checkpoint_dir + "/model")
                     save_time = time.time() - e_time
+                    with open(os.path.join(self.train_folder, 'result.json'), 'w') as fp:
+                        json.dump(meta_data, fp, indent=2)
 
                     e_time = time.time()
                     time_diff = e_time - s_time
@@ -271,7 +276,7 @@ class WGANGP:
                     meta_data['Gloss'].append(float(G_loss_curr))
                     meta_data['Dloss'].append(float(D_loss_curr))
 
-                    print(f"Iter: {iteration}; D loss: {D_loss_curr:.4f}; G_loss: {G_loss_curr:.4f}; TotalTime: {time_diff:.4f}; TrainLoop: {dur_train_loop:.4f}, Save: {save_time:.4}")
+                    logging.info(f"Iter: {iteration}; D loss: {D_loss_curr:.4f}; G_loss: {G_loss_curr:.4f}; TotalTime: {time_diff:.4f}; TrainLoop: {dur_train_loop:.4f}, Save: {save_time:.4}")
                     dur_train_loop = dur_getTrainData_ultimate = 0.0
 
 
@@ -286,9 +291,6 @@ class WGANGP:
                 D_loss_curr, G_loss_curr = self.train_loop(X_trains, cond_labels)
                 train_loop_stop = time.time()
                 dur_train_loop += train_loop_stop - train_loop_start
-
-        with open(os.path.join(self.train_folder, 'result.json'), 'w') as fp:
-            json.dump(meta_data, fp, indent=2)
 
         self.plot_loss()
         return
@@ -306,7 +308,7 @@ class WGANGP:
         ax.grid(True)
         ax.legend(fontsize=20)
         plt.savefig(os.path.join(self.train_folder, 'loss.pdf'))
-        print('Save to', os.path.join(self.train_folder, 'loss.pdf'))
+        logging.info('Save to', os.path.join(self.train_folder, 'loss.pdf'))
 
     def predict(self, num, nevents, ischeck=False):
         self.saver.restore(f'{checkpoint_dir}/model-{num}').expect_partial()

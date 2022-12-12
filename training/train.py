@@ -48,8 +48,8 @@ def main(args):
         'D_lr': 1E-4,
         'G_beta1': 0.5,
         'G_beta1': 0.5,
-        'batchsize': 512,
-        'dgratio': 5,
+        'batchsize': 1024,
+        'dgratio': 8,
         'latent_dim': 50,
         'lam': 3,
         'conditional_dim': label_kin.shape[1],
@@ -64,7 +64,7 @@ def main(args):
         'checkpoint_interval': 1000,
         'output': args.output_path,
         'max_iter': 1E6,
-        'cache': True,
+        'cache': False,
     }
     
     wgan = WGANGP(job_config=job_config, hp_config=hp_config)
