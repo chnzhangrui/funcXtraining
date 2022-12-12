@@ -42,7 +42,7 @@ class WGANGP:
         self.output = os.path.join(job_config.get('output', '../output'), f'{self.particle}_eta_{self.eta_slice}')
         self.train_folder = os.path.join(self.output, 'train')
         os.makedirs(self.train_folder, exist_ok=True)
-        self.max_iter = tf.constant(job_config.get('max_iter', 1E6), dtype=tf.int64)
+        self.max_iter = tf.constant(int(job_config.get('max_iter', 1E6)), dtype=tf.int64)
         self.cache = job_config.get('cache', True)
         self.fix_seed = job_config.get('fix_seed', True)
         if self.fix_seed:

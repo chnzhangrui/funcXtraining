@@ -61,9 +61,9 @@ def main(args):
     job_config = {
         'particle': particle+'s',
         'eta_slice': '20_25',
-        'checkpoint_interval': 2,
+        'checkpoint_interval': 1000,
         'output': args.output_path,
-        'max_iter': 16,
+        'max_iter': 1E6,
         'cache': True,
     }
     

@@ -1,31 +1,23 @@
-#!/bin/bash
+set -o vi
+ulimit -S -s unlimited
 
-if [[ $HOSTNAME == "lxplus"* ]] || [[ $HOSTNAME == "pcuw"* ]] || [[ $HOSTNAME == *".cern.ch" ]]; then
-    __conda_setup="$('/afs/cern.ch/user/z/zhangr/work/anaconda3.7/bin/conda' 'shell.bash' 'hook' 2> /dev/null)"
-    if [ $? -eq 0 ]; then
-        eval "$__conda_setup"
-    else
-        if [ -f "/afs/cern.ch/user/z/zhangr/work/anaconda3.7/etc/profile.d/conda.sh" ]; then
-            . "/afs/cern.ch/user/z/zhangr/work/anaconda3.7/etc/profile.d/conda.sh"
-        else
-            export PATH="/afs/cern.ch/user/z/zhangr/work/anaconda3.7/bin:$PATH"
-        fi
-    fi
-    unset __conda_setup
+unset SUDO_UID SUDO_GID SUDO_USER
+
+# >>> conda initialize >>>
+# !! Contents within this block are managed by 'conda init' !!
+__conda_setup="$('/global/common/software/nersc/pm-2022q2/sw/python/3.9-anaconda-2021.11/bin/conda' 'shell.bash' 'hook' 2> /dev/null)"
+if [ $? -eq 0 ]; then
+    eval "$__conda_setup"
 else
-    __conda_setup="$('/Users/zhangrui/opt/anaconda3/bin/conda' 'shell.bash' 'hook' 2> /dev/null)"
-    if [ $? -eq 0 ]; then
-        eval "$__conda_setup"
+    if [ -f "/global/common/software/nersc/pm-2022q2/sw/python/3.9-anaconda-2021.11/etc/profile.d/conda.sh" ]; then
+        . "/global/common/software/nersc/pm-2022q2/sw/python/3.9-anaconda-2021.11/etc/profile.d/conda.sh"
     else
-        if [ -f "/Users/zhangrui/opt/anaconda3/etc/profile.d/conda.sh" ]; then
-            . "/Users/zhangrui/opt/anaconda3/etc/profile.d/conda.sh"
-        else
-            export PATH="/Users/zhangrui/opt/anaconda3/bin:$PATH"
-        fi
+        export PATH="/global/common/software/nersc/pm-2022q2/sw/python/3.9-anaconda-2021.11/bin:$PATH"
     fi
-    unset __conda_setup
 fi
+unset __conda_setup
+# <<< conda initialize <<<
 
-conda activate roopy38a
-which python
-python --version
+nvidia-smi
+module load tensorflow/2.6.0
+#conda activate fcg
