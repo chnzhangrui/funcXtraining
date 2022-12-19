@@ -5,6 +5,7 @@ import numpy as np
 import h5py, os
 import pandas as pd
 import matplotlib.pyplot as plt
+plt.rcParams.update({'figure.max_open_warning': 0})
 from model import WGANGP
 from train import particle_mass, kin_to_label
 from quickstats.utils.common_utils import execute_multi_tasks
@@ -129,6 +130,8 @@ def plot_E(args, categories, Etot_list, Egan_list, model_i):
     plt.tight_layout()
     plot_name = os.path.join(args.train_path, f'{particle}s_eta_{args.eta_slice}', os.path.splitext(os.path.basename(__file__))[0], f'plot_{particle}_{args.eta_slice}_{model_i}.pdf')
     plt.savefig(plot_name)
+    fig.clear()
+    plt.close(fig)
     return dict(results)
 
 def plot_model_i(args, model_i):
@@ -188,6 +191,8 @@ def best_ckpt(args, df):
     ax.text(0.40, 0.74, particle_latex_name[particle] + ", " + str("{:.2f}".format(int(eta_min) / 100, 2)) + r"$<|\eta|<$" + str("{:.2f}\n".format((int(eta_min) + 5) / 100, 2)) + "Best Epoch: {}, $\chi^2$/NDF = {:.1f}".format(int(best_x), best_y), transform=plt.gca().transAxes, fontsize=20)
     plt.tight_layout()
     plt.savefig(chi_name)
+    fig.clear()
+    plt.close(fig)
 
     csv_name = os.path.join(best_folder, 'chi2.csv')
     best_df = df[df['All'] == df['All'].min()]
@@ -206,10 +211,11 @@ def main(args):
     print('\033[92m[INFO] Evaluate\033[0m', particle, args.input_file, f'| {len(models)} models')
 
     models = [int(m.split('/')[-1].split('-')[-1].split('.')[0]) for m in models]
-    models.sort()
+    models.sort(reverse = True)
 
     arguments = (repeat(args), models)
-    results = execute_multi_tasks(plot_model_i, *arguments, parallel=int(os.cpu_count()/2))
+    #results = execute_multi_tasks(plot_model_i, *arguments, parallel=int(os.cpu_count()/2))
+    results = execute_multi_tasks(plot_model_i, *arguments, parallel=-1)
     df = pd.DataFrame(results).sort_values(by=['ckpt'])
 
     df_name = os.path.join(args.train_path, f'{particle}s_eta_{args.eta_slice}', os.path.splitext(os.path.basename(__file__))[0], f'chi2.csv')

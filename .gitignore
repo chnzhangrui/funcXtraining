@@ -5,3 +5,4 @@ input
 output
 **/.Xauthority
 **/.bash_history
+condor/log/

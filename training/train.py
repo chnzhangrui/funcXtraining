@@ -2,7 +2,7 @@
 from argparse import ArgumentParser
 from HighLevelFeatures import HighLevelFeatures
 import numpy as np
-import h5py, os
+import h5py, os, json
 import matplotlib.pyplot as plt
 from model import WGANGP
 from pdb import set_trace
@@ -57,7 +57,10 @@ def main(args):
         'nvoxels': 368,
         'use_bias': True,
     }
-    
+    if args.config:
+        from quickstats.utils.common_utils import combine_dict
+        hp_config = combine_dict(hp_config, json.load(open(args.config, 'r')))
+
     job_config = {
         'particle': particle+'s',
         'eta_slice': '20_25',
@@ -76,6 +79,7 @@ if __name__ == '__main__':
     parser = ArgumentParser(description="\033[92mConfig for training.\033[0m")
     parser.add_argument('-i', '--input_file', type=str, required=False, default='', help='Training h5 file name (default: %(default)s)')
     parser.add_argument('-o', '--output_path', type=str, required=True, default='../output/dataset1/v1', help='Training h5 file path (default: %(default)s)')
+    parser.add_argument('-c', '--config', type=str, required=False, default=None, help='External config file (default: %(default)s)')
     parser.add_argument('--debug', required=False, action='store_true', help='Debug mode (default: %(default)s)')
 
     args = parser.parse_args()

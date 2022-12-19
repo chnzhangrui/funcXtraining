@@ -90,7 +90,16 @@ class WGANGP:
         initializer = tf.keras.initializers.he_uniform()
         bias_node = self.use_bias
 
-        if self.model == "BNReLU":
+        if self.model == "GANv1":
+            G = layers.Dense(self.generatorLayers[0], kernel_initializer=tf.keras.initializers.glorot_normal(), bias_initializer="zeros")(con)
+            G = layers.ReLU()(G)
+            G = layers.Dense(self.generatorLayers[1], kernel_initializer=tf.keras.initializers.glorot_normal(), bias_initializer="zeros")(G)
+            G = layers.ReLU()(G)
+            G = layers.Dense(self.generatorLayers[2], kernel_initializer=tf.keras.initializers.glorot_normal(), bias_initializer="zeros")(G)
+            G = layers.ReLU()(G)
+            G = layers.Dense(self.nvoxels, kernel_initializer=tf.keras.initializers.glorot_normal(), bias_initializer="zeros")(G)
+            G = layers.ReLU()(G)
+        elif self.model == "BNReLU":
             G = layers.Dense(self.generatorLayers[0], kernel_initializer=initializer, bias_initializer="zeros")(con)
             G = layers.BatchNormalization()(G)
             G = layers.ReLU()(G)
@@ -163,8 +172,13 @@ class WGANGP:
         return generator
 
     def make_discriminator_model(self):
-        initializer = tf.keras.initializers.he_uniform()
-        bias_node = self.use_bias
+        if self.model == "GANv1":
+            initializer = tf.keras.initializers.glorot_normal()
+            bias_node = True
+        else:
+            initializer = tf.keras.initializers.he_uniform()
+            bias_node = self.use_bias
+
         model = tf.keras.Sequential()
         model.add(layers.Dense(int(self.discriminatorLayers[0] * self.D_size), use_bias=bias_node,
                                 input_shape=(self.nvoxels + self.conditional_dim,), kernel_initializer=initializer,bias_initializer="zeros")
@@ -180,7 +194,7 @@ class WGANGP:
         model.add(layers.ReLU())
         model.add(layers.Dense(1, use_bias=bias_node,
                                 input_shape=(int(self.discriminatorLayers[2] * self.D_size),), kernel_initializer=initializer,bias_initializer="zeros")
-                )
+            )
 
         if not self.no_output:
             model.summary()
