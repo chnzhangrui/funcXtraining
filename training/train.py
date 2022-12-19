@@ -22,14 +22,14 @@ def kin_to_label(kin):
     kin_min = np.min(kin)
     kin_max = np.max(kin)
     return np.log(kin / kin_min) / np.log(kin_max / kin_min)
-    
+
 
 def main(args):
     # creating instance of HighLevelFeatures class to handle geometry based on binning file
     input_file = args.input_file
     particle = input_file.split('/')[-1].split('_')[-2][:-1]
-    hlf = HighLevelFeatures(particle, filename=f'{os.path.dirname(input_file)}/binning_dataset_1_{particle}s.xml')
-    print('\033[92m[INFO]\033[0m', particle, input_file)
+    #hlf = HighLevelFeatures(particle, filename=f'{os.path.dirname(input_file)}/binning_dataset_1_{particle}s.xml')
+    print('\033[92m[INFO] Run\033[0m', particle, input_file)
     
     # loading the .hdf5 datasets
     photon_file = h5py.File(f'{input_file}', 'r')
@@ -61,13 +61,13 @@ def main(args):
     job_config = {
         'particle': particle+'s',
         'eta_slice': '20_25',
-        'checkpoint_interval': 1000,
+        'checkpoint_interval': 1000 if not args.debug else 10,
         'output': args.output_path,
-        'max_iter': 1E6,
+        'max_iter': 1E6 if not args.debug else 100,
         'cache': False,
     }
     
-    wgan = WGANGP(job_config=job_config, hp_config=hp_config)
+    wgan = WGANGP(job_config=job_config, hp_config=hp_config, logger=__file__)
     wgan.train(X_train, label_kin)
 
 if __name__ == '__main__':
@@ -76,6 +76,7 @@ if __name__ == '__main__':
     parser = ArgumentParser(description="\033[92mConfig for training.\033[0m")
     parser.add_argument('-i', '--input_file', type=str, required=False, default='', help='Training h5 file name (default: %(default)s)')
     parser.add_argument('-o', '--output_path', type=str, required=True, default='../output/dataset1/v1', help='Training h5 file path (default: %(default)s)')
+    parser.add_argument('--debug', required=False, action='store_true', help='Debug mode (default: %(default)s)')
 
     args = parser.parse_args()
     main(args)

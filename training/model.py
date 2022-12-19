@@ -18,7 +18,7 @@ from functools import partial
 from pdb import set_trace
 
 class WGANGP:
-    def __init__(self, job_config, hp_config):
+    def __init__(self, job_config, hp_config, logger=__file__):
         tf.keras.backend.set_floatx("float32")
         
         self.model = hp_config.get('model', 'BNswish') # default to photon GAN BNswish
@@ -42,9 +42,18 @@ class WGANGP:
         self.eta_slice = job_config.get('eta_slice', '20_25')
         self.checkpoint_interval = job_config.get('checkpoint_interval', 1000)
         self.output = os.path.join(job_config.get('output', '../output'), f'{self.particle}_eta_{self.eta_slice}')
-        self.train_folder = os.path.join(self.output, 'train')
+        self.train_folder = os.path.join(self.output, os.path.splitext(os.path.basename(logger))[0])
+        self.no_output = ('evaluate' in logger)
         os.makedirs(self.train_folder, exist_ok=True)
-        logging.basicConfig(filename=f'{self.train_folder}/train.log', level=logging.INFO, format='%(asctime)s %(message)s')
+        if not self.no_output:
+            logging.basicConfig( handlers=[
+                logging.StreamHandler(),
+                logging.FileHandler(f'{self.train_folder}/{os.path.splitext(os.path.basename(logger))[0]}.log')
+                ], level=logging.INFO, format='%(asctime)s %(message)s')
+        else:
+            logging.basicConfig( handlers=[
+                logging.StreamHandler(),
+                ], level=logging.INFO, format='%(asctime)s %(message)s')
         self.max_iter = tf.constant(int(job_config.get('max_iter', 1E6)), dtype=tf.int64)
         self.cache = job_config.get('cache', True)
         self.fix_seed = job_config.get('fix_seed', True)
@@ -64,18 +73,19 @@ class WGANGP:
         # Prepare for check pointing
         self.saver = tf.train.Checkpoint(generator_optimizer=self.generator_optimizer, discriminator_optimizer=self.discriminator_optimizer, generator=self.G, discriminator=self.D,)
 
-        with open(os.path.join(self.train_folder, 'config.json'), 'w') as fp:
-            json.dump({
-                'job_config': dict(sorted(job_config.items())),
-                'hp_config': dict(sorted(hp_config.items())),
-            }, fp, indent=2)
-        logging.info('configuration %s, %s', json.dumps(job_config), json.dumps(hp_config))
+        if not self.no_output:
+            with open(os.path.join(self.train_folder, 'config.json'), 'w') as fp:
+                json.dump({
+                    'job_config': dict(sorted(job_config.items())),
+                    'hp_config': dict(sorted(hp_config.items())),
+                }, fp, indent=2)
+            logging.info('configuration %s, %s', json.dumps(job_config), json.dumps(hp_config))
 
     def make_generator_functional_model(self):
         noise = layers.Input(shape=(self.latent_dim,), name="Noise")
         condition = layers.Input(shape=(self.conditional_dim,), name="mycond")
         con = layers.concatenate([noise, condition])
-        logging.info('Use model', self.model)
+        logging.info('Use model %s', self.model)
         initializer = tf.keras.initializers.he_uniform()
         bias_node = self.use_bias
 
@@ -145,9 +155,10 @@ class WGANGP:
             assert(0)
 
         generator = Model(inputs=[noise, condition], outputs=G)
-        generator.summary()
-        with open(os.path.join(self.train_folder, 'model.txt'), 'w') as fp:
-            generator.summary(print_fn=lambda x: fp.write(x + '\n'))
+        if not self.no_output:
+            generator.summary()
+            with open(os.path.join(self.train_folder, 'model.txt'), 'w') as fp:
+                generator.summary(print_fn=lambda x: fp.write(x + '\n'))
         return generator
 
     def make_discriminator_model(self):
@@ -170,9 +181,10 @@ class WGANGP:
                                 input_shape=(int(self.discriminatorLayers[2] * self.D_size),), kernel_initializer=initializer,bias_initializer="zeros")
                 )
 
-        model.summary()
-        with open(os.path.join(self.train_folder, 'model.txt'), 'a') as fp:
-            model.summary(print_fn=lambda x: fp.write(x + '\n'))
+        if not self.no_output:
+            model.summary()
+            with open(os.path.join(self.train_folder, 'model.txt'), 'a') as fp:
+                model.summary(print_fn=lambda x: fp.write(x + '\n'))
         return model
 
     @tf.function
@@ -310,11 +322,12 @@ class WGANGP:
         plt.savefig(os.path.join(self.train_folder, 'loss.pdf'))
         logging.info('Save to', os.path.join(self.train_folder, 'loss.pdf'))
 
-    def predict(self, num, nevents, ischeck=False):
-        self.saver.restore(f'{checkpoint_dir}/model-{num}').expect_partial()
+    def predict(self, model_i, labels, ischeck=False):
+        checkpoint_dir = os.path.join(self.output, 'checkpoints')
+        self.saver.restore(f'{checkpoint_dir}/model-{model_i}').expect_partial()
         if ischeck:
             return 0
-        z = tf.random.normal([self.batchsize, self.latent_dim],mean=self.random_mean,stddev=self.random_std,dtype=tf.dtypes.float32,)
+        z = tf.random.normal([labels.shape[0], self.latent_dim],mean=self.random_mean,stddev=self.random_std,dtype=tf.dtypes.float32,)
         x_fake = self.G(inputs=[z, labels])
         return x_fake
 
