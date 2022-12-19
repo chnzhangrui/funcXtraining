@@ -125,6 +125,19 @@ class WGANGP:
             G = layers.Dense(self.nvoxels,use_bias=bias_node,kernel_initializer=initializer,bias_initializer="zeros")(G)
             G = layers.BatchNormalization()(G)
             G = layers.Activation(activations.swish)(G)
+        elif self.model == "BNswishHe":
+            G = layers.Dense(self.generatorLayers[0],use_bias=bias_node,kernel_initializer=initializer,bias_initializer="zeros")(con)
+            G = layers.BatchNormalization()(G)
+            G = layers.Activation(activations.swish)(G)
+            G = layers.Dense(self.generatorLayers[1],use_bias=bias_node,kernel_initializer=initializer,bias_initializer="zeros")(G)
+            G = layers.BatchNormalization()(G)
+            G = layers.Activation(activations.swish)(G)
+            G = layers.Dense(self.generatorLayers[2],use_bias=bias_node,kernel_initializer=initializer,bias_initializer="zeros")(G)
+            G = layers.BatchNormalization()(G)
+            G = layers.Activation(activations.swish)(G)
+            G = layers.Dense(self.nvoxels,use_bias=bias_node,kernel_initializer=initializer,bias_initializer="zeros")(G)
+            G = layers.BatchNormalization()(G)
+            G = layers.Activation(activations.swish)(G)
         elif self.model == "BNLeakyReLU":
             G = layers.Dense(self.generatorLayers[0],use_bias=bias_node,kernel_initializer=initializer,bias_initializer="zeros")(con)
             G = layers.BatchNormalization()(G)
@@ -345,4 +358,53 @@ class WGANGP:
         z = tf.random.normal([labels.shape[0], self.latent_dim],mean=self.random_mean,stddev=self.random_std,dtype=tf.dtypes.float32,)
         x_fake = self.G(inputs=[z, labels])
         return x_fake
+
+
+class SpectralNorm(Wrapper):
+
+    def __init__(self, layer, iteration=1, **kwargs):
+        super(SpectralNorm, self).__init__(layer, **kwargs)
+        self.iteration = iteration
+
+    def build(self, input_shape):
+        if not self.layer.built:
+            self.layer.build(input_shape)
+
+            if not hasattr(self.layer, 'kernel'):
+                raise ValueError('Invalid layer for SpectralNorm.')
+
+            self.w = self.layer.kernel
+            self.w_shape = self.w.shape.as_list()
+            self.u = self.add_weight(shape=(1, self.w_shape[-1]), initializer=tf.random_normal_initializer(), name='sn_u', trainable=False, dtype=tf.float32)
+
+        super(SpectralNorm, self).build()
+
+    @tf.function
+    def call(self, inputs, training=None):
+        self._compute_weights(training)
+        output = self.layer(inputs)
+
+        return output
+
+    def _compute_weights(self, training):
+        iteration = self.iteration
+        w_reshaped = tf.reshape(self.w, [-1, self.w_shape[-1]])
+
+        u_hat = tf.identity(self.u)
+        v_hat = None
+
+        for _ in range(self.iteration):
+            v_ = tf.matmul(u_hat, tf.transpose(w_reshaped))
+            v_hat = tf.nn.l2_normalize(v_)
+
+            u_ = tf.matmul(v_hat, w_reshaped)
+            u_hat = tf.nn.l2_normalize(u_)
+
+        if training == True: self.u.assign(u_hat)
+        sigma = tf.matmul(tf.matmul(v_hat, w_reshaped), tf.transpose(u_hat))
+        w_norm = self.w / sigma
+        self.layer.kernel = w_norm
+        
+    def compute_output_shape(self, input_shape):
+        return tf.TensorShape(self.layer.compute_output_shape(input_shape).as_list())
 

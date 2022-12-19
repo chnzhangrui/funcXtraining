@@ -40,23 +40,43 @@ def main(args):
     
     X_train = photon_file['showers'][:] / kin
     
-    hp_config = {
-        'model': 'BNswish',
-        'G_size': 1,
-        'D_size': 1,
-        'G_lr': 1E-4,
-        'D_lr': 1E-4,
-        'G_beta1': 0.5,
-        'G_beta1': 0.5,
-        'batchsize': 1024,
-        'dgratio': 8,
-        'latent_dim': 50,
-        'lam': 3,
-        'conditional_dim': label_kin.shape[1],
-        'generatorLayers': [50, 100, 200],
-        'nvoxels': 368,
-        'use_bias': True,
-    }
+    if 'photon' in particle:
+        hp_config = {
+            'model': 'BNswish',
+            'G_size': 1,
+            'D_size': 1,
+            'G_lr': 1E-4,
+            'D_lr': 1E-4,
+            'G_beta1': 0.5,
+            'G_beta1': 0.5,
+            'batchsize': 1024,
+            'dgratio': 8,
+            'latent_dim': 50,
+            'lam': 3,
+            'conditional_dim': label_kin.shape[1],
+            'generatorLayers': [50, 100, 200],
+            'nvoxels': X_train.shape[1],
+            'use_bias': True,
+        }
+    else: # pion
+        hp_config = {
+            'model': 'noBN',
+            'G_size': 1,
+            'D_size': 1,
+            'G_lr': 1E-4,
+            'D_lr': 1E-4,
+            'G_beta1': 0.5,
+            'G_beta1': 0.5,
+            'batchsize': 1024,
+            'dgratio': 5,
+            'latent_dim': 50,
+            'lam': 10,
+            'conditional_dim': label_kin.shape[1],
+            'generatorLayers': [50, 100, 200],
+            'discriminatorLayers': [800, 400, 200],
+            'nvoxels': X_train.shape[1],
+            'use_bias': True,
+        }
     if args.config:
         from quickstats.utils.common_utils import combine_dict
         hp_config = combine_dict(hp_config, json.load(open(args.config, 'r')))
