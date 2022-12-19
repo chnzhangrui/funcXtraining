@@ -3,3 +3,5 @@ homepage
 **/__pycache__
 input
 output
+**/.Xauthority
+**/.bash_history

@@ -85,7 +85,8 @@ class WGANGP:
         noise = layers.Input(shape=(self.latent_dim,), name="Noise")
         condition = layers.Input(shape=(self.conditional_dim,), name="mycond")
         con = layers.concatenate([noise, condition])
-        logging.info('Use model %s', self.model)
+        if not self.no_output:
+            logging.info('Use model %s', self.model)
         initializer = tf.keras.initializers.he_uniform()
         bias_node = self.use_bias
 
@@ -320,7 +321,7 @@ class WGANGP:
         ax.grid(True)
         ax.legend(fontsize=20)
         plt.savefig(os.path.join(self.train_folder, 'loss.pdf'))
-        logging.info('Save to', os.path.join(self.train_folder, 'loss.pdf'))
+        logging.info('Save to %s', os.path.join(self.train_folder, 'loss.pdf'))
 
     def predict(self, model_i, labels, ischeck=False):
         checkpoint_dir = os.path.join(self.output, 'checkpoints')
