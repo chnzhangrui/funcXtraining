@@ -20,28 +20,29 @@ Request_memory = 8 GB
 Request_disk   = 4 GB
 
 
-#Arguments = ../input/dataset1/dataset_1_photons_1.hdf5 GANv1
+#Arguments = train ../input/dataset1/dataset_1_photons_1.hdf5 GANv1
 #Queue 1
-#Arguments = ../input/dataset1/dataset_1_photons_1.hdf5 BNswish
+#Arguments = train ../input/dataset1/dataset_1_photons_1.hdf5 BNswish
 #Queue 1
-#Arguments = ../input/dataset1/dataset_1_photons_1.hdf5 BNReLU
+#Arguments = train ../input/dataset1/dataset_1_photons_1.hdf5 BNReLU
 #Queue 1
-#Arguments = ../input/dataset1/dataset_1_photons_1.hdf5 BNswishHe
+#Arguments = train ../input/dataset1/dataset_1_photons_1.hdf5 BNswishHe
 #Queue 1
-#Arguments = ../input/dataset1/dataset_1_photons_1.hdf5 SN
+#Arguments = train ../input/dataset1/dataset_1_photons_1.hdf5 SN
 #Queue 1
-Arguments = ../input/dataset1/dataset_1_photons_1.hdf5 noBN
-Queue 1
+#Arguments = train ../input/dataset1/dataset_1_photons_1.hdf5 noBN
+#Queue 1
+#
+#Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5 GANv1
+#Queue 1
+#Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5 BNswish
+#Queue 1
+#Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU
+#Queue 1
+#Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5 BNswishHe
+#Queue 1
+#Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5 SN
+#Queue 1
+#Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5 noBN
+#Queue 1
 
-Arguments = ../input/dataset1/dataset_1_pions_1.hdf5 GANv1
-Queue 1
-Arguments = ../input/dataset1/dataset_1_pions_1.hdf5 BNswish
-Queue 1
-Arguments = ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU
-Queue 1
-Arguments = ../input/dataset1/dataset_1_pions_1.hdf5 BNswishHe
-Queue 1
-Arguments = ../input/dataset1/dataset_1_pions_1.hdf5 SN
-Queue 1
-Arguments = ../input/dataset1/dataset_1_pions_1.hdf5 noBN
-Queue 1

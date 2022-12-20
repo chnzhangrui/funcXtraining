@@ -316,7 +316,7 @@ class WGANGP:
                     meta_data['Gloss'].append(float(G_loss_curr))
                     meta_data['Dloss'].append(float(D_loss_curr))
 
-                    logging.info(f"Iter: {iteration}; D loss: {D_loss_curr:.4f}; G_loss: {G_loss_curr:.4f}; TotalTime: {time_diff:.4f}; TrainLoop: {dur_train_loop:.4f}, Save: {save_time:.4}")
+                    logging.info(f"Iter: {iteration}; D loss: {D_loss_curr:.4f}; G_loss: {G_loss_curr:.4f}; TotalTime: {time_diff:.2f}; TrainLoop: {dur_train_loop:.2f}, Save: {save_time:.2}")
                     dur_train_loop = dur_getTrainData_ultimate = 0.0
 
 

@@ -1,0 +1,46 @@
+#Agent jdl file
+Universe        = vanilla
+Notification    = Never
+initialdir      = /afs/cern.ch/work/z/zhangr/FCG/FastCaloChallenge/condor
+Executable      = /afs/cern.ch/work/z/zhangr/FCG/FastCaloChallenge/condor/wrapper.sh
+GetEnv          = True
+Error           = /afs/cern.ch/work/z/zhangr/FCG/FastCaloChallenge/condor/log/$(ClusterId).$(ProcId).err
+Log             = /afs/cern.ch/work/z/zhangr/FCG/FastCaloChallenge/condor/log/$(ClusterId).log
+Output          = /afs/cern.ch/work/z/zhangr/FCG/FastCaloChallenge/condor/log/$(ClusterId).$(ProcId).out
+stream_output   = False
+stream_error    = False
+Requirements = ((Arch == "X86_64") && (regexp("CentOS7",OpSysAndVer)))
+WhenToTransferOutput = ON_EXIT_OR_EVICT
+OnExitRemove         = TRUE
++JobFlavour = "nextweek"
++JobType="training"
++AccountingGroup ="group_u_ATLASWISC.all"
+request_CPUs = 6
+Request_memory = 12 GB
+Request_disk   = 5 GB
+
+Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 GANv1
+Queue 1
+#Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswish
+#Queue 1
+Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNReLU
+Queue 1
+Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswishHe
+Queue 1
+Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 SN
+Queue 1
+Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 noBN
+Queue 1
+
+Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 GANv1
+Queue 1
+Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNswish
+Queue 1
+Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU
+Queue 1
+Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNswishHe
+Queue 1
+Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 SN
+Queue 1
+Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 noBN
+Queue 1

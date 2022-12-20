@@ -147,10 +147,14 @@ def plot_model_i(args, model_i):
             return chi2_results
 
     categories, Etot_list = get_truth_E(args)
+    truth_time = time.time() - start_time
+    start_time = time.time()
     categories, Egan_list = get_gan_E(args, model_i=model_i)
+    gan_time = time.time() - start_time
+    start_time = time.time()
     chi2_results = plot_E(args, categories, Etot_list, Egan_list, model_i)
-    end_time = time.time()
-    print('\033[92m[INFO] Evaluate result\033[0m', 'model', model_i, 'chi2', chi2_results['All'], f'time {end_time-start_time:.1f}s')
+    plot_time = time.time() - start_time
+    print('\033[92m[INFO] Evaluate result\033[0m', 'model', model_i, 'chi2', f'{chi2_results["All"]:.2f}', f'time (truth) {truth_time:.1f}s (gan) {gan_time:.1f}s (plot) {plot_time:.1f}s')
     return chi2_results
 
 def chunks(lst, n):
