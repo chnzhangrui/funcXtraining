@@ -22,7 +22,11 @@ def main(args):
     results = {'particle': [], 'eta': [], 'model': [], 'hp': [], 'chi2': [], 'iter': []}
     for ifile in files:
         model, hp, particle, eta_min, eta_max = get_info(ifile)
-        df = pd.read_csv(f'{ifile}/selected/chi2.csv')
+        csv_file = f'{ifile}/selected/chi2.csv'
+        if not os.path.exists(csv_file):
+            print('\033[92m[INFO] Unfinished job\033[0m', f'{csv_file}')
+            continue
+        df = pd.read_csv(f'{csv_file}')
         chi2 = float(df['All'])
         iteration = int(df['ckpt'])
 

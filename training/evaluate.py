@@ -218,7 +218,6 @@ def main(args):
     models.sort(reverse = True)
 
     arguments = (repeat(args), models)
-    #results = execute_multi_tasks(plot_model_i, *arguments, parallel=int(os.cpu_count()/2))
     results = execute_multi_tasks(plot_model_i, *arguments, parallel=-1)
     df = pd.DataFrame(results).sort_values(by=['ckpt'])
 

@@ -73,12 +73,15 @@ class WGANGP:
         self.generator_optimizer = tf.optimizers.Adam(learning_rate=self.G_lr, beta_1=self.G_beta1)
         self.discriminator_optimizer = tf.optimizers.Adam(learning_rate=self.D_lr, beta_1=self.D_beta1)
 
-
         # Prepare for check pointing
         self.saver = tf.train.Checkpoint(generator_optimizer=self.generator_optimizer, discriminator_optimizer=self.discriminator_optimizer, generator=self.G, discriminator=self.D,)
 
         if not self.no_output:
             with open(os.path.join(self.train_folder, 'config.json'), 'w') as fp:
+                # this is a reference change, need to correct when saving the config; otherwise evaluation step will get a wrong generator size
+                for i in range(len(self.generatorLayers)):
+                    self.generatorLayers[i] = int(self.generatorLayers[i] / self.G_size)
+
                 json.dump({
                     'job_config': dict(sorted(job_config.items())),
                     'hp_config': dict(sorted(hp_config.items())),
