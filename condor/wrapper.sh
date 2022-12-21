@@ -9,6 +9,7 @@ output=$3
 
 model=`echo $output | cut -d '_' -f 1`
 config=`echo $output | cut -d '_' -f 2`
+config=`echo $config | cut -d '-' -f 1`
 
 if [[ ${task} == *'train'* ]]; then
     command="python train.py -i ${input} -m ${model} -o ../output/dataset1/v1/${output} -c ../config/config_${config}.json"

@@ -97,7 +97,7 @@ class WGANGP:
         initializer = tf.keras.initializers.he_uniform()
         bias_node = self.use_bias
 
-        if self.model == "GANv1":
+        if self.model.startswith("GANv1"):
             G = layers.Dense(self.generatorLayers[0], kernel_initializer=tf.keras.initializers.glorot_normal(), bias_initializer="zeros")(con)
             G = layers.ReLU()(G)
             G = layers.Dense(self.generatorLayers[1], kernel_initializer=tf.keras.initializers.glorot_normal(), bias_initializer="zeros")(G)
@@ -195,6 +195,9 @@ class WGANGP:
         if self.model == "GANv1":
             initializer = tf.keras.initializers.glorot_normal()
             bias_node = True
+        elif self.model == "GANv1-Tglo":
+            initializer = tf.keras.initializers.glorot_normal()
+            bias_node = True
         else:
             initializer = tf.keras.initializers.he_uniform()
             bias_node = self.use_bias
@@ -239,6 +242,9 @@ class WGANGP:
     @tf.function
     def D_loss(self, x_real, cond_label):
         if self.model == "GANv1":
+            z = tf.random.uniform([self.batchsize, self.latent_dim],minval=-1,maxval=1,dtype=tf.dtypes.float32,)
+            logging.info('latent dist uniform -1, 1')
+        elif self.model == "GANv1-Tlatuni":
             z = tf.random.uniform([self.batchsize, self.latent_dim],minval=-1,maxval=1,dtype=tf.dtypes.float32,)
             logging.info('latent dist uniform -1, 1')
         else:
