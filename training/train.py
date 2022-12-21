@@ -42,7 +42,7 @@ def main(args):
     
     if 'photon' in particle:
         hp_config = {
-            'model': 'BNswish',
+            'model': args.model if args.model else 'BNswish',
             'G_size': 1,
             'D_size': 1,
             'G_lr': 1E-4,
@@ -60,7 +60,7 @@ def main(args):
         }
     else: # pion
         hp_config = {
-            'model': 'noBN',
+            'model': args.model if args.model else 'noBN',
             'G_size': 1,
             'D_size': 1,
             'G_lr': 1E-4,
@@ -100,6 +100,7 @@ if __name__ == '__main__':
     parser.add_argument('-i', '--input_file', type=str, required=False, default='', help='Training h5 file name (default: %(default)s)')
     parser.add_argument('-o', '--output_path', type=str, required=True, default='../output/dataset1/v1', help='Training h5 file path (default: %(default)s)')
     parser.add_argument('-c', '--config', type=str, required=False, default=None, help='External config file (default: %(default)s)')
+    parser.add_argument('-m', '--model', type=str, required=False, default=None, help='Model name (default: %(default)s)')
     parser.add_argument('--debug', required=False, action='store_true', help='Debug mode (default: %(default)s)')
 
     args = parser.parse_args()

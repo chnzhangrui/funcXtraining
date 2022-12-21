@@ -22,7 +22,7 @@ class WGANGP:
         tf.keras.backend.set_floatx("float32")
         
         self.model = hp_config.get('model', 'BNswish') # default to photon GAN BNswish
-#         self.G_size = hp_config.get('G_size', 1)
+        self.G_size = hp_config.get('G_size', 1)
         self.D_size = hp_config.get('D_size', 1)
         self.G_lr = hp_config.get('G_lr', 0.0001)
         self.D_lr = hp_config.get('D_lr', 0.0001)
@@ -30,13 +30,18 @@ class WGANGP:
         self.D_beta1 = hp_config.get('D_beta1', 0.5)
         self.batchsize = tf.constant(hp_config.get('batchsize', 512), dtype=tf.int32)
         self.dgratio = tf.constant(hp_config.get('dgratio', 5), dtype=tf.int32)
-        self.latent_dim = hp_config.get('latent_dim', 3)
+        self.latent_dim = hp_config.get('latent_dim', 50)
         self.lam = hp_config.get('lam', 50)
         self.conditional_dim = hp_config.get('conditional_dim', 2)
         self.generatorLayers = hp_config.get('generatorLayers', [50, 100, 200])
+        for i in range(len(self.generatorLayers)):
+            self.generatorLayers[i] = int(self.generatorLayers[i] * self.G_size)
+        self.latent_dim = int(self.latent_dim * self.G_size)
         self.nvoxels = hp_config.get('nvoxels', 368)
         self.discriminatorLayers = hp_config.get('discriminatorLayers', [self.nvoxels, self.nvoxels, self.nvoxels])
         self.use_bias = hp_config.get('use_bias', True)
+        self.random_mean= hp_config.get('latent_mean', 0.5)
+        self.random_std = hp_config.get('latent_std', 0.5)
 
         self.particle = job_config.get('particle', 'photons')
         self.eta_slice = job_config.get('eta_slice', '20_25')
@@ -68,7 +73,6 @@ class WGANGP:
         self.generator_optimizer = tf.optimizers.Adam(learning_rate=self.G_lr, beta_1=self.G_beta1)
         self.discriminator_optimizer = tf.optimizers.Adam(learning_rate=self.D_lr, beta_1=self.D_beta1)
 
-        self.random_mean, self.random_std = 0.5, 0.5
 
         # Prepare for check pointing
         self.saver = tf.train.Checkpoint(generator_optimizer=self.generator_optimizer, discriminator_optimizer=self.discriminator_optimizer, generator=self.G, discriminator=self.D,)
@@ -231,7 +235,12 @@ class WGANGP:
 
     @tf.function
     def D_loss(self, x_real, cond_label):
-        z = tf.random.normal([self.batchsize, self.latent_dim],mean=self.random_mean,stddev=self.random_std,dtype=tf.dtypes.float32,)
+        if self.model == "GANv1":
+            z = tf.random.uniform([self.batchsize, self.latent_dim],minval=-1,maxval=1,dtype=tf.dtypes.float32,)
+            logging.info('latent dist uniform -1, 1')
+        else:
+            z = tf.random.normal([self.batchsize, self.latent_dim],mean=self.random_mean,stddev=self.random_std,dtype=tf.dtypes.float32,)
+            logging.info(f'latent dist normal mean {self.random_mean} std {self.random_std}')
         x_fake = self.G(inputs=[z, cond_label])
         D_fake = self.D(tf.concat([x_fake, cond_label], 1))
         D_real = self.D(tf.concat([x_real, cond_label], 1))
