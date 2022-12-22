@@ -12,7 +12,7 @@ stream_error    = False
 Requirements = ((Arch == "X86_64") && (regexp("CentOS7",OpSysAndVer)))
 WhenToTransferOutput = ON_EXIT_OR_EVICT
 OnExitRemove         = TRUE
-+JobFlavour = "tomorrow"
++JobFlavour = "testmatch"
 +JobType="training"
 request_GPUs = 1
 request_CPUs = 4
@@ -34,8 +34,8 @@ Request_disk   = 4 GB
 #Arguments = train ../input/dataset1/dataset_1_photons_1.hdf5 SN_GANv2
 #Queue 1
 #                                                                       
-Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5   GANv1_GANv1
-Queue 1
+#Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5   GANv1_GANv1
+#Queue 1
 #Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5   BNswish_GANv2
 #Queue 1
 #Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5   BNReLU_GANv2
@@ -84,3 +84,14 @@ Queue 1
 #Queue 1
 #Arguments = train ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo8
 #Queue 1
+#Arguments = train ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo9
+#Queue 1
+#Arguments = train ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo10
+#Queue 1
+#Arguments = train ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo11
+#Queue 1
+
+Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5 GANv1_GANv1-Tlatuni
+Queue 1
+Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5 GANv1_GANv1-Tglo
+Queue 1

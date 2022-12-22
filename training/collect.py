@@ -43,7 +43,7 @@ if __name__ == '__main__':
 
     """Get arguments from command line."""
     parser = ArgumentParser(description="\033[92mConfig for training.\033[0m")
-    parser.add_argument('-i', '--input', type=str, required=False, default='', help='Training h5 file name (default: %(default)s)')
+    parser.add_argument('-i', '--input', type=str, required=True, default='', help='Training h5 file name (default: %(default)s)')
 
     args = parser.parse_args()
     main(args)

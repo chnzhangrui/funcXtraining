@@ -14,42 +14,49 @@ from itertools import repeat
 from glob import glob
 from pdb import set_trace
 
-def get_truth_E(args):
+def get_E_truth(input_file, mode='total'):
     # creating instance of HighLevelFeatures class to handle geometry based on binning file
-    particle = args.input_file.split('/')[-1].split('_')[-2][:-1]
-    photon_file = h5py.File(f'{args.input_file}', 'r')
+    particle = input_file.split('/')[-1].split('_')[-2][:-1]
+    photon_file = h5py.File(f'{input_file}', 'r')
 
-    hlf = HighLevelFeatures(particle, filename=f'{os.path.dirname(args.input_file)}/binning_dataset_1_{particle}s.xml')
+    hlf = HighLevelFeatures(particle, filename=f'{os.path.dirname(input_file)}/binning_dataset_1_{particle}s.xml')
     hlf.CalculateFeatures(photon_file['showers'][:])
 
-    GeV = 1000
-    Etot = hlf.GetEtot() / GeV
+    if mode == 'total':
+        E_tot = hlf.GetEtot()
+    elif mode == 'voxel':
+        E_vox = photon_file['showers'][:]
     energies = photon_file['incident_energies'][:]
     if np.all(np.mod(energies, 1) == 0):
         energies = energies.astype(int)
     else:
         raise ValueError
     categories = np.unique(energies)
-    joint_array = np.concatenate([energies, Etot.reshape(-1,1)], axis=1)
+
+    if mode == 'total':
+        joint_array = np.concatenate([energies, E_tot.reshape(-1,1)], axis=1)
+    elif mode == 'voxel':
+        joint_array = np.concatenate([energies, E_vox], axis=1)
+
     joint_array = joint_array[joint_array[:, 0].argsort()]
-    Etot_list = np.split(joint_array[:,1], np.unique(joint_array[:, 0], return_index=True)[1][1:])
+
+    Etot_list = np.split(joint_array[:,1:], np.unique(joint_array[:, 0], return_index=True)[1][1:])
     return categories, Etot_list
 
-def get_gan_E(args, model_i):
-    particle = args.input_file.split('/')[-1].split('_')[-2][:-1]
-    photon_file = h5py.File(f'{args.input_file}', 'r')
+def get_gan_E_tot(model_i, input_file, train_path, eta_slice):
+    particle = input_file.split('/')[-1].split('_')[-2][:-1]
+    photon_file = h5py.File(f'{input_file}', 'r')
     mass = particle_mass(particle)
     energies = photon_file['incident_energies'][:]
     kin = np.sqrt( np.square(energies) + np.square(mass) ) - mass
     label_kin = kin_to_label(kin)
 
-    config = json.load(open(os.path.join(args.train_path, f'{particle}s_eta_{args.eta_slice}', 'train', 'config.json')))
+    config = json.load(open(os.path.join(train_path, f'{particle}s_eta_{eta_slice}', 'train', 'config.json')))
 
     wgan = WGANGP(job_config=config['job_config'], hp_config=config['hp_config'], logger=__file__)
     Egan = wgan.predict(model_i=model_i, labels=label_kin)
     Egan *= kin
-    GeV = 1000
-    Egan = np.array(Egan).sum(axis=-1) / GeV
+    Egan = np.array(Egan).sum(axis=-1)
 
     if np.all(np.mod(energies, 1) == 0):
         energies = energies.astype(int)
@@ -79,7 +86,7 @@ def chi2testWW(y1, y1_err, y2, y2_err):
 
 
 
-def plot_E(args, categories, Etot_list, Egan_list, model_i):
+def plot_Egan(args, categories, Etot_list, Egan_list, model_i):
     particle = args.input_file.split('/')[-1].split('_')[-2][:-1]
     fig, axes = plt.subplots(nrows=4, ncols=4, figsize=(15, 15))
     particle_latex_name = {
@@ -95,13 +102,18 @@ def plot_E(args, categories, Etot_list, Egan_list, model_i):
     nbins = 30
     ndf_tot = chi2_tot = 0
     for index, energy in enumerate(categories):
+        # Convert energy to GeV
+        GeV = 1000
+        etot = Etot_list[index] / GeV
+        egan = Egan_list[index] / GeV
+
         ax = axes[(index) // 4, (index) % 4]
-        median = np.median(Etot_list[index])
-        high = median + min([np.absolute(np.max(Etot_list[index]) - median), np.absolute(np.quantile(Etot_list[index], q=1-0.05) - median) * 2, np.absolute(np.quantile(Etot_list[index], q=1-0.16) - median) * 10])
-        low  = median - min([np.absolute(np.min(Etot_list[index]) - median), np.absolute(np.quantile(Etot_list[index], q=0.05) - median) * 2, np.absolute(np.quantile(Etot_list[index], q=1-0.16) - median) * 10])
+        median = np.median(etot)
+        high = median + min([np.absolute(np.max(etot) - median), np.absolute(np.quantile(etot, q=1-0.05) - median) * 2, np.absolute(np.quantile(etot, q=1-0.16) - median) * 10])
+        low  = median - min([np.absolute(np.min(etot) - median), np.absolute(np.quantile(etot, q=0.05) - median) * 2, np.absolute(np.quantile(etot, q=1-0.16) - median) * 10])
         bins = get_bins_given_edges(low, high, nbins, 3)
-        y_tot, x_tot, _ = ax.hist(np.clip(Etot_list[index], bins[0], bins[-1]), bins=bins, label='G4', histtype='step', density=False, color='k', linestyle='-', alpha=0.8, linewidth=2.)
-        y_gan, x_gan, _ = ax.hist(np.clip(Egan_list[index], bins[0], bins[-1]), bins=bins, label='GAN', histtype='step', density=False, color='r', linestyle='--', alpha=0.8, linewidth=2.)
+        y_tot, x_tot, _ = ax.hist(np.clip(etot, bins[0], bins[-1]), bins=bins, label='G4', histtype='step', density=False, color='k', linestyle='-', alpha=0.8, linewidth=2.)
+        y_gan, x_gan, _ = ax.hist(np.clip(egan, bins[0], bins[-1]), bins=bins, label='GAN', histtype='step', density=False, color='r', linestyle='--', alpha=0.8, linewidth=2.)
         y_tot_err = np.sqrt(y_tot)
         y_gan_err = np.sqrt(y_gan)
         chi2, ndf = chi2testWW(y_tot, y_tot_err, y_gan, y_gan_err)
@@ -146,16 +158,46 @@ def plot_model_i(args, model_i):
             print('\033[92m[INFO] Cache\033[0m', 'model', model_i, 'chi2', chi2_results['All'])
             return chi2_results
 
-    categories, Etot_list = get_truth_E(args)
+    categories, Etot_list = get_E_truth(args.input_file)
     truth_time = time.time() - start_time
     start_time = time.time()
-    categories, Egan_list = get_gan_E(args, model_i=model_i)
+    categories, Egan_list = get_gan_E_tot(model_i=model_i, input_file=args.input_file, train_path=args.train_path, eta_slice=args.eta_slice)
     gan_time = time.time() - start_time
     start_time = time.time()
-    chi2_results = plot_E(args, categories, Etot_list, Egan_list, model_i)
+    chi2_results = plot_Egan(args, categories, Etot_list, Egan_list, model_i)
     plot_time = time.time() - start_time
     print('\033[92m[INFO] Evaluate result\033[0m', 'model', model_i, 'chi2', f'{chi2_results["All"]:.2f}', f'time (truth) {truth_time:.1f}s (gan) {gan_time:.1f}s (plot) {plot_time:.1f}s')
     return chi2_results
+
+def plot_energy_vox(categories, E_vox_list, nvox='all'):
+    np.seterr(divide = 'ignore')
+    if nvox == 'all': loop = ['all']
+    else: loop = range(nvox)
+    for vox_i in loop:
+        fig, axes = plt.subplots(nrows=4, ncols=4, figsize=(15, 15))
+        for index, energy in enumerate(categories):
+            ax = axes[(index) // 4, (index) % 4]
+            if nvox == 'all':
+                x = np.log(E_vox_list[index][:,:].flatten())
+            else:
+                x = np.log(E_vox_list[index][:,vox_i].flatten())
+            ax.hist(x, range=(-11,-1), bins=40, histtype='step') # [GeV]
+            ax.axvline(x=-3, color='r', ls='-', label='MeV')
+            ax.axvline(x=-6, color='b', ls='-', label='keV')
+            ax.ticklabel_format(style='plain')
+            ax.ticklabel_format(useOffset=False, style='plain')
+            ax.text(0.98, 0.98, f"{energy} GeV", transform=ax.transAxes, va="top", ha="right", fontsize=20)
+            ax.set_xlabel(f"Log(Energy of voxel {vox_i} [MeV])")
+            ax.legend(loc='lower right')
+            ax.set_ylabel("Events")
+
+        ax = axes[(index + 1) // 4, (index + 1) % 4]
+        ax.axis("off")
+        plt.tight_layout()
+        plot_name = f'../output/dataset1/plots/vox/vox_{vox_i}.pdf'
+        os.makedirs(os.path.dirname(plot_name), exist_ok=True)
+        plt.savefig(plot_name)
+        print('\033[92m[INFO] Save to\033[0m', plot_name)
 
 def chunks(lst, n):
     """Yield successive n-sized chunks from lst."""

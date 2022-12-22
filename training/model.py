@@ -18,7 +18,7 @@ from functools import partial
 from pdb import set_trace
 
 class WGANGP:
-    def __init__(self, job_config, hp_config, logger=__file__):
+    def __init__(self, job_config, hp_config, logger):
         tf.keras.backend.set_floatx("float32")
         
         self.model = hp_config.get('model', 'BNswish') # default to photon GAN BNswish

@@ -33,8 +33,8 @@ Request_disk   = 5 GB
 #Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 SN_GANv2
 #Queue 1
 #                                                                       
-#Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5   GANv1_GANv1
-#Queue 1
+Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5   GANv1_GANv1
+Queue 1
 #Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5   BNswish_GANv2
 #Queue 1
 #Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5   BNReLU_GANv2
@@ -68,11 +68,18 @@ Request_disk   = 5 GB
 #Queue 1
 #Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo3
 #Queue 1
-Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo4
-Queue 1
+#Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo4
+#Queue 1
 #Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo5
 #Queue 1
-Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo6
-Queue 1
+#Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo6
+#Queue 1
 #Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo7
+#Queue 1
+
+#Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 GANv1_GANv1-Tlatuni
+#Queue 1
+#Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 GANv1_GANv1-Tglo
+#Queue 1
+#Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo8
 #Queue 1
