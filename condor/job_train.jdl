@@ -90,8 +90,7 @@ Request_disk   = 4 GB
 #Queue 1
 #Arguments = train ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo11
 #Queue 1
-
-Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5 GANv1_GANv1-Tlatuni
-Queue 1
-Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5 GANv1_GANv1-Tglo
-Queue 1
+#Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5 GANv1_GANv1-Tlatuni
+#Queue 1
+#Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5 GANv1_GANv1-Tglo
+#Queue 1

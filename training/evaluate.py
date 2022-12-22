@@ -218,53 +218,53 @@ def best_ckpt(args, df):
     particle = args.input_file.split('/')[-1].split('_')[-2][:-1]
     best_folder = os.path.join(args.train_path, f'{particle}s_eta_{args.eta_slice}', 'selected')
     chi_name = os.path.join(best_folder, 'chi2.pdf')
-    #if os.path.exists(chi_name) and os.path.exists(best_folder):
-    #    return
+    if not os.path.exists(chi_name):
+        os.makedirs(best_folder, exist_ok=True)
+        particle_latex_name = {
+            'photon': r"$\gamma$",
+            'photons': r"$\gamma$",
+            'pion': r"$\pi$",
+            'pions': r"$\pi$",
+        }
+        best_x = df[df['All'] == df['All'].min()]['ckpt'] * 1000
+        best_y = df['All'].min()
+        x = df['ckpt'] * 1000
+        y = df['All']
 
-    os.makedirs(best_folder, exist_ok=True)
-    particle_latex_name = {
-        'photon': r"$\gamma$",
-        'photons': r"$\gamma$",
-        'pion': r"$\pi$",
-        'pions': r"$\pi$",
-    }
-    best_x = df[df['All'] == df['All'].min()]['ckpt'] * 1000
-    best_y = df['All'].min()
-    x = df['ckpt'] * 1000
-    y = df['All']
-
-    fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(10, 6))
-    plt.scatter(x, y, c="k")
-    plt.scatter(best_x, best_y, c="r")
-    ax.set_xlabel("Iterations", fontsize=20)
-    ax.set_ylabel("$\chi^{2}$/NDF", fontsize=20)
-    ax.tick_params(axis="both", which="major", width=2, length=8, labelsize=20, direction="in")
-    ax.tick_params(axis="both", which="minor", width=2, length=5, labelsize=20, direction="in")
-    ax.minorticks_on()
-    #ax.text(0.40, 0.92, "ATLAS", weight=1000, fontsize=20, transform=plt.gca().transAxes)
-    #ax.text(0.55, 0.92, "Simulation Internal", fontsize=20, transform=plt.gca().transAxes)
-    eta_min, eta_max = tuple(args.eta_slice.split('_'))
-    ax.text(0.40, 0.74, particle_latex_name[particle] + ", " + str("{:.2f}".format(int(eta_min) / 100, 2)) + r"$<|\eta|<$" + str("{:.2f}\n".format((int(eta_min) + 5) / 100, 2)) + "Best Epoch: {}, $\chi^2$/NDF = {:.1f}".format(int(best_x), best_y), transform=plt.gca().transAxes, fontsize=20)
-    plt.tight_layout()
-    plt.savefig(chi_name)
-    fig.clear()
-    plt.close(fig)
+        fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(10, 6))
+        plt.scatter(x, y, c="k")
+        plt.scatter(best_x, best_y, c="r")
+        ax.set_xlabel("Iterations", fontsize=20)
+        ax.set_ylabel("$\chi^{2}$/NDF", fontsize=20)
+        ax.tick_params(axis="both", which="major", width=2, length=8, labelsize=20, direction="in")
+        ax.tick_params(axis="both", which="minor", width=2, length=5, labelsize=20, direction="in")
+        ax.minorticks_on()
+        #ax.text(0.40, 0.92, "ATLAS", weight=1000, fontsize=20, transform=plt.gca().transAxes)
+        #ax.text(0.55, 0.92, "Simulation Internal", fontsize=20, transform=plt.gca().transAxes)
+        eta_min, eta_max = tuple(args.eta_slice.split('_'))
+        ax.text(0.40, 0.74, particle_latex_name[particle] + ", " + str("{:.2f}".format(int(eta_min) / 100, 2)) + r"$<|\eta|<$" + str("{:.2f}\n".format((int(eta_min) + 5) / 100, 2)) + "Best Epoch: {}, $\chi^2$/NDF = {:.1f}".format(int(best_x), best_y), transform=plt.gca().transAxes, fontsize=20)
+        plt.tight_layout()
+        plt.savefig(chi_name)
+        fig.clear()
+        plt.close(fig)
 
     csv_name = os.path.join(best_folder, 'chi2.csv')
     best_df = df[df['All'] == df['All'].min()]
-    best_df.to_csv(csv_name, index=False)
+    if not os.path.exists(csv_name):
+        best_df.to_csv(csv_name, index=False)
 
-    models = glob(os.path.join(args.train_path, f'{particle}s_eta_{args.eta_slice}', 'checkpoints', f'model-{int(best_df["ckpt"])}*'))
-    for model in models:
-        os.system(f'cp {model} {best_folder}')  
-    plot_name = os.path.join(args.train_path, f'{particle}s_eta_{args.eta_slice}', os.path.splitext(os.path.basename(__file__))[0], f'plot_{particle}_{args.eta_slice}_{int(best_df["ckpt"])}.pdf')
-    os.system(f'cp {plot_name} {best_folder}')  
+        models = glob(os.path.join(args.train_path, f'{particle}s_eta_{args.eta_slice}', 'checkpoints', f'model-{int(best_df["ckpt"])}*'))
+        for model in models:
+            os.system(f'cp {model} {best_folder}')  
+        plot_name = os.path.join(args.train_path, f'{particle}s_eta_{args.eta_slice}', os.path.splitext(os.path.basename(__file__))[0], f'plot_{particle}_{args.eta_slice}_{int(best_df["ckpt"])}.pdf')
+        os.system(f'cp {plot_name} {best_folder}')  
 
-    # Plot 'masking' distribution; 'masking' means to remove voxel energies below a threshold of 1keV or 1MeV
-    categories, E_gan_list = get_E_gan(model_i=int(best_df["ckpt"]), input_file=args.input_file, train_path=args.train_path, eta_slice=args.eta_slice, mode='voxel')
-    categories, E_tru_list = get_E_truth(args.input_file, mode='voxel')
     vox_name = os.path.join(best_folder, f'mask_{particle}_{args.eta_slice}_{int(best_df["ckpt"])}_'+r'{vox_i}.pdf')
-    plot_energy_vox(categories, [E_tru_list, E_gan_list], label_list=['Geant4', 'GAN'], nvox='all', output=vox_name)
+    if not os.path.exists(vox_name):
+        # Plot 'masking' distribution; 'masking' means to remove voxel energies below a threshold of 1keV or 1MeV
+        categories, E_gan_list = get_E_gan(model_i=int(best_df["ckpt"]), input_file=args.input_file, train_path=args.train_path, eta_slice=args.eta_slice, mode='voxel')
+        categories, E_tru_list = get_E_truth(args.input_file, mode='voxel')
+        plot_energy_vox(categories, [E_tru_list, E_gan_list], label_list=['Geant4', 'GAN'], nvox='all', output=vox_name)
 
 
 def main(args):
