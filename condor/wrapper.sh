@@ -12,9 +12,9 @@ config_mask=`echo $output | cut -d '_' -f 2`
 config=`echo $config_mask | cut -d '-' -f 1`
 mask=`echo $config_mask | cut -d '-' -f 2 | cut -d 'M' -f 2`
 
-if [[ "$mask" -eq "$mask" ]]; then
+if [[ $mask == ?(-)+([0-9]) ]]; then
     version='v2'
-    addition="-m $mask"
+    addition="--mask $mask"
 else
     version='v1'
     addition=""

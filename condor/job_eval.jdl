@@ -19,57 +19,57 @@ request_CPUs = 6
 Request_memory = 12 GB
 Request_disk   = 5 GB
 
-###         task=$1         input=$2                         output=model_config
-Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 GANv1_GANv1
-Queue 1
-Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 noBN_GANv2
-Queue 1
-Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_GANv2
-Queue 1
-Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNReLU_GANv2
-Queue 1
-Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswishHe_GANv2
-Queue 1
-Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 SN_GANv2
-Queue 1
-                                                                       
-Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5   GANv1_GANv1
-Queue 1
-Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5   BNswish_GANv2
-Queue 1
-Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5   BNReLU_GANv2
-Queue 1
-Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5   BNswishHe_GANv2
-Queue 1
-Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5   SN_GANv2
-Queue 1
-Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5   noBN_GANv2
-Queue 1
-
-Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 GANv1_GANv1
-Queue 1
-Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 noBN_GANv1
-Queue 1
-Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 GANv1_GANv2
-Queue 1
-Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 noBN_BS128
-Queue 1
-Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 GANv1_BS128
-Queue 1
-Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 noBN_dglam
-Queue 1
-Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 GANv1_dglam
-Queue 1
-Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_latent01
-Queue 1
-Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo1
-Queue 1
-Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo2
-Queue 1
-Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo3
-Queue 1
-Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo4
-Queue 1
+####         task=$1         input=$2                         output=model_config
+#Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 GANv1_GANv1
+#Queue 1
+#Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 noBN_GANv2
+#Queue 1
+#Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_GANv2
+#Queue 1
+#Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNReLU_GANv2
+#Queue 1
+#Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswishHe_GANv2
+#Queue 1
+#Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 SN_GANv2
+#Queue 1
+#                                                                       
+#Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5   GANv1_GANv1
+#Queue 1
+#Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5   BNswish_GANv2
+#Queue 1
+#Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5   BNReLU_GANv2
+#Queue 1
+#Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5   BNswishHe_GANv2
+#Queue 1
+#Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5   SN_GANv2
+#Queue 1
+#Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5   noBN_GANv2
+#Queue 1
+#
+#Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 GANv1_GANv1
+#Queue 1
+#Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 noBN_GANv1
+#Queue 1
+#Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 GANv1_GANv2
+#Queue 1
+#Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 noBN_BS128
+#Queue 1
+#Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 GANv1_BS128
+#Queue 1
+#Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 noBN_dglam
+#Queue 1
+#Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 GANv1_dglam
+#Queue 1
+#Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_latent01
+#Queue 1
+#Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo1
+#Queue 1
+#Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo2
+#Queue 1
+#Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo3
+#Queue 1
+#Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo4
+#Queue 1
 Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo5
 Queue 1
 Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo6
@@ -92,4 +92,15 @@ Queue 1
 Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 GANv1_GANv1-Tlatuni
 Queue 1
 Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 GANv1_GANv1-Tglo
+Queue 1
+
+Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo4-M10000
+Queue 1
+Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo4-M1000
+Queue 1
+Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo4-M100
+Queue 1
+Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo4-M10
+Queue 1
+Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo4-M1
 Queue 1

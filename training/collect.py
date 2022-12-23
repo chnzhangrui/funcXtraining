@@ -4,12 +4,21 @@ from glob import glob
 import pandas as pd
 from pdb import set_trace
 
+def completion_check(ifile):
+    csv_file = f'{ifile}/evaluate/chi2.csv'
+    df = pd.read_csv(f'{csv_file}')
+    if df.shape[0] < 1001:
+        print('\033[92m[INFO] Evaluation\033[0m', f'{csv_file}', df.shape[0])
+    return df.shape[0]
+
 def main(args):
-    files = glob(f'{args.input}/*/*')
+    files = glob(f'{args.input}/*/*[!.pdf]')
 
     def get_info(path):
         task = path.split('/')[-2].split('_')
         job = path.split('/')[-1].split('_')
+        if len(task) < 2 or len(job) < 4:
+            print('\033[91m[ERROR] job not found in\033[0m', f'{path}')
         return tuple([task[0], task[1], job[0], job[2], job[3]])
 
     pid = {
@@ -19,13 +28,15 @@ def main(args):
         'protons': 2212,
     }
 
-    results = {'particle': [], 'eta': [], 'model': [], 'hp': [], 'chi2': [], 'iter': []}
+    results = {'particle': [], 'eta': [], 'model': [], 'hp': [], 'chi2': [], 'iter': [], 'total': []}
+
     for ifile in files:
         model, hp, particle, eta_min, eta_max = get_info(ifile)
         csv_file = f'{ifile}/selected/chi2.csv'
         if not os.path.exists(csv_file):
             print('\033[92m[INFO] Unfinished job\033[0m', f'{csv_file}')
             continue
+        tot_iter = completion_check(ifile)
         df = pd.read_csv(f'{csv_file}')
         chi2 = float(df['All'])
         iteration = int(df['ckpt'])
@@ -36,8 +47,10 @@ def main(args):
         results['hp'].append(hp)
         results['chi2'].append(chi2)
         results['iter'].append(iteration)
+        results['total'].append(tot_iter)
     pd.DataFrame.from_dict(results).sort_values(by=['particle', 'eta', 'model', 'hp']).to_csv(f'{args.input}/results.csv', index=False)
     print('\033[92m[INFO] Save to\033[0m', f'{args.input}/results.csv')
+    os.system(f'tablign {args.input}/results.csv')
 
 if __name__ == '__main__':
 

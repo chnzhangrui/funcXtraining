@@ -182,7 +182,8 @@ class WGANGP:
             G = SpectralNorm(layers.Dense(self.generatorLayers[2],use_bias=bias_node,activation="relu",kernel_initializer=initializer,bias_initializer="zeros"))(G)
             G = SpectralNorm(layers.Dense(self.nvoxels,use_bias=bias_node,activation="relu",kernel_initializer=initializer,bias_initializer="zeros"))(G)
         else:
-            assert(0)
+            print(self.model, 'not implemented')
+            raise NotImplementedError
 
         generator = Model(inputs=[noise, condition], outputs=G)
         if not self.no_output:
