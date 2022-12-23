@@ -184,9 +184,9 @@ def plot_energy_vox(categories, E_vox_list, label_list=None, nvox='all', output=
             ax = axes[(index) // 4, (index) % 4]
             for i, E_list in enumerate(E_vox_list):
                 if nvox == 'all':
-                    x = np.log(E_list[index][:,:].flatten() / GeV)
+                    x = np.log10(E_list[index][:,:].flatten() / GeV)
                 else:
-                    x = np.log(E_list[index][:,vox_i].flatten() / GeV)
+                    x = np.log10(E_list[index][:,vox_i].flatten() / GeV)
                 if i == 0:
                     low, high = np.nanmin(x[x != -np.inf]), np.max(x)
                 ax.hist(x, range=(low,high), bins=40, histtype='step', label=None if label_list is None else label_list[i]) # [GeV]

@@ -21,7 +21,7 @@ def particle_mass(particle=None):
 def kin_to_label(kin):
     kin_min = np.min(kin)
     kin_max = np.max(kin)
-    return np.log(kin / kin_min) / np.log(kin_max / kin_min)
+    return np.log10(kin / kin_min) / np.log10(kin_max / kin_min)
 
 
 def main(args):
@@ -38,8 +38,24 @@ def main(args):
     kin = np.sqrt( np.square(photon_file['incident_energies'][:]) + np.square(mass) ) - mass
     label_kin = kin_to_label(kin)
     
-    X_train = photon_file['showers'][:] / kin
-    
+    X_train = photon_file['showers'][:]
+    if args.mask is not None:
+        # mask too low energy to zeros
+        X_train_copy = X_train.copy()
+        X_train[X_train < (args.mask / 1000)] = 0
+        event_energy = X_train.sum(axis=1)
+        event_energy_before = X_train_copy.sum(axis=1)
+        event_energy[event_energy == 0] = 1
+        event_energy_before[event_energy_before == 0] = 1
+        plt.hist(1 - event_energy / event_energy_before, bins=1000, range=(0,1))
+        plt.yscale('log')
+        plt.xlabel('Relative change in total Energy')
+        plt.ylabel('Events')
+        os.makedirs(args.output_path, exist_ok=True)
+        plt.savefig(os.path.join(args.output_path, f'mask_{particle}_{args.mask}keV.pdf'))
+        print('\033[92m[INFO] Mask\033[0m', args.mask, '[keV] for voxel energy, energy change in first 1000 by', 1-X_train_copy[:1000].sum()/X_train[:1000].sum())
+    X_train /= kin
+
     if 'photon' in particle:
         hp_config = {
             'model': args.model if args.model else 'BNswish',
@@ -101,6 +117,7 @@ if __name__ == '__main__':
     parser.add_argument('-o', '--output_path', type=str, required=True, default='../output/dataset1/v1', help='Training h5 file path (default: %(default)s)')
     parser.add_argument('-c', '--config', type=str, required=False, default=None, help='External config file (default: %(default)s)')
     parser.add_argument('-m', '--model', type=str, required=False, default=None, help='Model name (default: %(default)s)')
+    parser.add_argument('--mask', type=float, required=False, default=None, help='Mask low noisy voxels in keV (default: %(default)s)')
     parser.add_argument('--debug', required=False, action='store_true', help='Debug mode (default: %(default)s)')
 
     args = parser.parse_args()

@@ -36,7 +36,7 @@ def main(args):
         results['hp'].append(hp)
         results['chi2'].append(chi2)
         results['iter'].append(iteration)
-    pd.DataFrame.from_dict(results).sort_values(by=['particle', 'eta', 'model']).to_csv(f'{args.input}/results.csv', index=False)
+    pd.DataFrame.from_dict(results).sort_values(by=['particle', 'eta', 'model', 'hp']).to_csv(f'{args.input}/results.csv', index=False)
     print('\033[92m[INFO] Save to\033[0m', f'{args.input}/results.csv')
 
 if __name__ == '__main__':

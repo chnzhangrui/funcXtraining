@@ -8,14 +8,23 @@ input=$2
 output=$3
 
 model=`echo $output | cut -d '_' -f 1`
-config=`echo $output | cut -d '_' -f 2`
-config=`echo $config | cut -d '-' -f 1`
+config_mask=`echo $output | cut -d '_' -f 2`
+config=`echo $config_mask | cut -d '-' -f 1`
+mask=`echo $config_mask | cut -d '-' -f 2 | cut -d 'M' -f 2`
+
+if [[ "$mask" -eq "$mask" ]]; then
+    version='v2'
+    addition="-m $mask"
+else
+    version='v1'
+    addition=""
+fi
 
 if [[ ${task} == *'train'* ]]; then
-    command="python train.py -i ${input} -m ${model} -o ../output/dataset1/v1/${output} -c ../config/config_${config}.json"
+    command="python train.py -i ${input} -m ${model} -o ../output/dataset1/${version}/${output} -c ../config/config_${config}.json ${addition}"
 else
-    command="python evaluate.py -i ${input} -t ../output/dataset1/v1/${output}"
+    command="python evaluate.py -i ${input} -t ../output/dataset1/${version}/${output}"
 fi
 echo $command
 $command
-
+cd -
