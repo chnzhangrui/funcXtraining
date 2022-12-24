@@ -19,7 +19,7 @@ request_CPUs = 6
 Request_memory = 12 GB
 Request_disk   = 5 GB
 
-####         task=$1         input=$2                         output=model_config
+#####         task=$1         input=$2                         output=model_config
 #Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 GANv1_GANv1
 #Queue 1
 #Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 noBN_GANv2
@@ -70,37 +70,46 @@ Request_disk   = 5 GB
 #Queue 1
 #Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo4
 #Queue 1
-Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo5
-Queue 1
-Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo6
-Queue 1
-Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo7
-Queue 1
+#Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo5
+#Queue 1
+#Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo6
+#Queue 1
+#Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo7
+#Queue 1
+#
+#Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 GANv1_GANv1-Tlatuni
+#Queue 1
+#Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 GANv1_GANv1-Tglo
+#Queue 1
+#Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo8
+#Queue 1
+#Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo9
+#Queue 1
+#Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo10
+#Queue 1
+#Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo11
+#Queue 1
+#Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 GANv1_GANv1-Tlatuni
+#Queue 1
+#Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 GANv1_GANv1-Tglo
+#Queue 1
+#
+#Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo4-M10000
+#Queue 1
+#Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo4-M1000
+#Queue 1
+#Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo4-M100
+#Queue 1
+#Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo4-M10
+#Queue 1
+#Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo4-M1
+#Queue 1
 
-Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 GANv1_GANv1-Tlatuni
+Arguments = train ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo4-Mn1000
 Queue 1
-Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 GANv1_GANv1-Tglo
+Arguments = train ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo4-Mn100
 Queue 1
-Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo8
+Arguments = train ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo4-Mn10
 Queue 1
-Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo9
-Queue 1
-Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo10
-Queue 1
-Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo11
-Queue 1
-Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 GANv1_GANv1-Tlatuni
-Queue 1
-Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 GANv1_GANv1-Tglo
-Queue 1
-
-Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo4-M10000
-Queue 1
-Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo4-M1000
-Queue 1
-Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo4-M100
-Queue 1
-Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo4-M10
-Queue 1
-Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo4-M1
+Arguments = train ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo4-Mn1
 Queue 1

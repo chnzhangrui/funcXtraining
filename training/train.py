@@ -6,6 +6,8 @@ import h5py, os, json
 import matplotlib.pyplot as plt
 from model import WGANGP
 from pdb import set_trace
+from common import *
+np.set_printoptions(suppress=True)
 
 def particle_mass(particle=None):
     if 'photon' in particle or particle == 22:
@@ -23,6 +25,78 @@ def kin_to_label(kin):
     kin_max = np.max(kin)
     return np.log10(kin / kin_min) / np.log10(kin_max / kin_min)
 
+def apply_mask(mask, X_train, input_file):
+    np.seterr(divide = 'ignore', invalid='ignore')
+    event_energy_before = X_train.sum(axis=1)[:]
+
+    # mask too low energy to zeros
+    if isinstance(mask, (int, float)):
+        X_train[X_train < (mask / 1000)] = 0
+    elif isinstance(mask, dict):
+        # X_train is un-sorted!
+        energies = get_energies(input_file)
+        for k,m in mask.items():
+            X_train[np.logical_and(energies == k, X_train < (m / 1000))] = 0
+    else:
+        raise NotImplementedError
+
+    # plot energy change before and after masking
+    event_energy_after  = X_train.sum(axis=1)[:]
+    event_energy = np.concatenate([event_energy_before.reshape(-1,1), event_energy_after.reshape(-1,1)], axis=1)
+
+    categories, vector_list  = split_energy(input_file, event_energy)
+    fig, axes = plot_frame(categories, xlabel="Rel. change in E total", ylabel="Events")
+    for index, energy in enumerate(categories):
+        ax = axes[index]
+        before, after = vector_list[index][:,0], vector_list[index][:,1]
+        x = 1 - np.divide(after, before, out=np.zeros_like(before), where=before!=0)
+        if x.max() < 1E-4:
+            high = 1E-4
+        elif x.max() < 1E-3:
+            high = 1E-3
+        elif x.max() < 1E-2:
+            high = 1E-2
+        elif x.max() < 0.1:
+            high = 0.1
+        else:
+            high = 1
+        print(x.max(), energy, high)
+        n, _, _ = ax.hist(x, bins=100, range=(0,high))
+        ax.set_yscale('symlog')
+        ax.set_ylim(bottom=0)
+        if isinstance(mask, (int, float)):
+            mask_legend = f'Mask {mask} keV\nMax {high}'
+        elif isinstance(mask, dict):
+            if mask[energy] < 1E3:
+                mask_legend = f'Mask {mask[energy]} keV\nMax {high}'
+            elif mask[energy] < 1E6:
+                mask_legend = f'Mask {mask[energy]/1E3} MeV\nMax {high}'
+            else:
+                mask_legend = f'Mask {mask[energy]/1E6} GeV\nMax {high}'
+        ax.text(0.98, 0.88, mask_legend, transform=ax.transAxes, va="top", ha="right", fontsize=15)
+    ax = axes[-1]
+    ax.axis("on")
+    x = 1 - event_energy_after / event_energy_before
+    if x.max() < 1E-4:
+        high = 1E-4
+    elif x.max() < 1E-3:
+        high = 1E-3
+    elif x.max() < 1E-2:
+        high = 1E-2
+    elif x.max() < 0.1:
+        high = 0.1
+    else:
+        high = 1
+    ax.hist(x, bins=100, range=(0,high))
+    ax.set_yscale('symlog')
+    ax.set_ylim(bottom=0)
+    os.makedirs(args.output_path, exist_ok=True)
+    particle = input_file.split('/')[-1].split('_')[-2][:-1]
+    plt.savefig(os.path.join(args.output_path, f'mask_{particle}_{args.mask}keV.pdf'))
+    print('\033[92m[INFO] Mask\033[0m', args.mask, mask, '[keV] for voxel energy')
+        
+    # return masked input
+    return X_train
 
 def main(args):
     # creating instance of HighLevelFeatures class to handle geometry based on binning file
@@ -35,25 +109,18 @@ def main(args):
     photon_file = h5py.File(f'{input_file}', 'r')
     
     mass = particle_mass(particle)
-    kin = np.sqrt( np.square(photon_file['incident_energies'][:]) + np.square(mass) ) - mass
+    energies = photon_file['incident_energies'][:]
+    kin = np.sqrt( np.square(energies) + np.square(mass) ) - mass
     label_kin = kin_to_label(kin)
     
     X_train = photon_file['showers'][:]
     if args.mask is not None:
-        # mask too low energy to zeros
-        X_train_copy = X_train.copy()
-        X_train[X_train < (args.mask / 1000)] = 0
-        event_energy = X_train.sum(axis=1)
-        event_energy_before = X_train_copy.sum(axis=1)
-        event_energy[event_energy == 0] = 1
-        event_energy_before[event_energy_before == 0] = 1
-        plt.hist(1 - event_energy / event_energy_before, bins=1000, range=(0,1))
-        plt.yscale('log')
-        plt.xlabel('Relative change in total Energy')
-        plt.ylabel('Events')
-        os.makedirs(args.output_path, exist_ok=True)
-        plt.savefig(os.path.join(args.output_path, f'mask_{particle}_{args.mask}keV.pdf'))
-        print('\033[92m[INFO] Mask\033[0m', args.mask, '[keV] for voxel energy, energy change in first 1000 by', 1-X_train_copy[:1000].sum()/X_train[:1000].sum())
+        if args.mask < 0:
+            mask = list(np.unique(energies)/256 * abs(args.mask)) # E/256 * (-mask)
+            mask = dict(zip(list(np.unique(energies)), mask))
+        else:
+            mask = args.mask
+        X_train = apply_mask(mask, X_train, input_file)
     X_train /= kin
 
     if 'photon' in particle:
