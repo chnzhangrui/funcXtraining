@@ -34,51 +34,90 @@ Request_disk   = 4 GB
 #Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5   noBN_GANv2
 #Queue 1
 
-Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5   BNswish_hpo1
+#Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5   BNswish_hpo1
+#Queue 1
+#Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5   BNswish_hpo2
+#Queue 1
+#Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5   BNswish_hpo3
+#Queue 1
+#Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5   BNswish_hpo4
+#Queue 1
+#Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5   BNswish_hpo5
+#Queue 1
+#Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5   BNswish_hpo6
+#Queue 1
+#Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5   BNswish_hpo7
+#Queue 1
+#Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5   BNswish_hpo11
+#Queue 1
+#Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5   noBN_hpo1
+#Queue 1
+#Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5   noBN_hpo2
+#Queue 1
+#Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5   noBN_hpo3
+#Queue 1
+#Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5   noBN_hpo4
+#Queue 1
+#Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5   noBN_hpo5
+#Queue 1
+#Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5   noBN_hpo6
+#Queue 1
+#Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5   noBN_hpo7
+#Queue 1
+#Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5   noBN_hpo11
+#Queue 1
+#Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5   BNReLU_hpo1
+#Queue 1
+#Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5   BNReLU_hpo2
+#Queue 1
+#Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5   BNReLU_hpo3
+#Queue 1
+#Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5   BNReLU_hpo4
+#Queue 1
+#Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5   BNReLU_hpo5
+#Queue 1
+#Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5   BNReLU_hpo6
+#Queue 1
+#Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5   BNReLU_hpo7
+#Queue 1
+#Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5   BNReLU_hpo11
+#Queue 1
+
+
+Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo4-M10000
 Queue 1
-Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5   BNswish_hpo2
+Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo4-M1000
 Queue 1
-Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5   BNswish_hpo3
+Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo4-M100
 Queue 1
-Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5   BNswish_hpo4
+Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo4-M10
 Queue 1
-Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5   BNswish_hpo5
+Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo4-M1
 Queue 1
-Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5   BNswish_hpo6
+Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo4-Mn1000
 Queue 1
-Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5   BNswish_hpo7
+Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo4-Mn100
 Queue 1
-Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5   BNswish_hpo11
+Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo4-Mn10
 Queue 1
-Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5   noBN_hpo1
+Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo4-Mn1
 Queue 1
-Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5   noBN_hpo2
+
+Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5 noBN_hpo4-M10000
 Queue 1
-Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5   noBN_hpo3
+Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5 noBN_hpo4-M1000
 Queue 1
-Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5   noBN_hpo4
+Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5 noBN_hpo4-M100
 Queue 1
-Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5   noBN_hpo5
+Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5 noBN_hpo4-M10
 Queue 1
-Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5   noBN_hpo6
+Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5 noBN_hpo4-M1
 Queue 1
-Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5   noBN_hpo7
+Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5 noBN_hpo4-Mn1000
 Queue 1
-Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5   noBN_hpo11
+Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5 noBN_hpo4-Mn100
 Queue 1
-Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5   BNReLU_hpo1
+Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5 noBN_hpo4-Mn10
 Queue 1
-Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5   BNReLU_hpo2
-Queue 1
-Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5   BNReLU_hpo3
-Queue 1
-Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5   BNReLU_hpo4
-Queue 1
-Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5   BNReLU_hpo5
-Queue 1
-Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5   BNReLU_hpo6
-Queue 1
-Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5   BNReLU_hpo7
-Queue 1
-Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5   BNReLU_hpo11
+Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5 noBN_hpo4-Mn1
 Queue 1

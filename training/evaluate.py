@@ -192,7 +192,7 @@ def best_ckpt(args, df):
     particle = args.input_file.split('/')[-1].split('_')[-2][:-1]
     best_folder = os.path.join(args.train_path, f'{particle}s_eta_{args.eta_slice}', 'selected')
     chi_name = os.path.join(best_folder, 'chi2.pdf')
-    if os.path.exists(chi_name):
+    if not os.path.exists(chi_name):
         os.makedirs(best_folder, exist_ok=True)
         particle_latex_name = {
             'photon': r"$\gamma$",
@@ -256,7 +256,11 @@ def best_ckpt(args, df):
 def main(args):
     particle = args.input_file.split('/')[-1].split('_')[-2][:-1]
     models = glob(os.path.join(args.train_path, f'{particle}s_eta_{args.eta_slice}', 'checkpoints', 'model-*.index'))
-    print('\033[92m[INFO] Evaluate\033[0m', particle, args.input_file, f'| {len(models)} models')
+    if not models:
+        print('\033[91m[ERROR] No model is found at\033[0m', os.path.join(args.train_path, f'{particle}s_eta_{args.eta_slice}', 'checkpoints', 'model-*.index'))
+        return
+    else:
+        print('\033[92m[INFO] Evaluate\033[0m', particle, args.input_file, f'| {len(models)} models')
 
     models = [int(m.split('/')[-1].split('-')[-1].split('.')[0]) for m in models]
     models.sort(reverse = True)

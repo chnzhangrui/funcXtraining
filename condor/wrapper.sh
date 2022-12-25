@@ -11,7 +11,6 @@ model=`echo $output | cut -d '_' -f 1`
 config_mask=`echo $output | cut -d '_' -f 2`
 config=`echo $config_mask | cut -d '-' -f 1`
 mask=`echo $config_mask | cut -d '-' -f 2 | cut -d 'M' -f 2`
-echo $mask
 
 if [[ $mask == ?(n)+([0-9]) ]]; then
     version='v2'
