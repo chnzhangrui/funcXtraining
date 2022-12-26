@@ -24,11 +24,13 @@ class WGANGP:
         self.model = hp_config.get('model', 'BNswish') # default to photon GAN BNswish
         self.G_size = hp_config.get('G_size', 1)
         self.D_size = hp_config.get('D_size', 1)
+        self.optimizer = hp_config.get('optimizer', 'adam')
         self.G_lr = hp_config.get('G_lr', 0.0001)
         self.D_lr = hp_config.get('D_lr', 0.0001)
         self.G_beta1 = hp_config.get('G_beta1', 0.5)
         self.D_beta1 = hp_config.get('D_beta1', 0.5)
         self.batchsize = tf.constant(hp_config.get('batchsize', 512), dtype=tf.int32)
+        self.datasize = tf.constant(hp_config.get('datasize', 121000), dtype=tf.int32)
         self.dgratio = tf.constant(hp_config.get('dgratio', 5), dtype=tf.int32)
         self.latent_dim = hp_config.get('latent_dim', 50)
         self.lam = hp_config.get('lam', 50)
@@ -70,8 +72,34 @@ class WGANGP:
         # Construct D and G models
         self.G = self.make_generator_functional_model()
         self.D = self.make_discriminator_model()
-        self.generator_optimizer = tf.optimizers.Adam(learning_rate=self.G_lr, beta_1=self.G_beta1)
-        self.discriminator_optimizer = tf.optimizers.Adam(learning_rate=self.D_lr, beta_1=self.D_beta1)
+        
+        # Optimizer
+        if self.optimizer == 'adam':
+            self.generator_optimizer = tf.optimizers.Adam(learning_rate=self.G_lr, beta_1=self.G_beta1)
+            self.discriminator_optimizer = tf.optimizers.Adam(learning_rate=self.D_lr, beta_1=self.D_beta1)
+        elif self.optimizer == 'clr':
+            import tensorflow_addons as tfa
+            steps_per_epoch = tf.cast(self.datasize // self.batchsize, tf.int64)
+            G_clr = tfa.optimizers.CyclicalLearningRate(initial_learning_rate=self.G_lr/2, maximal_learning_rate=self.D_lr*5, scale_fn=lambda x: 1/(2.**(x-1)), step_size=int(2E5)*steps_per_epoch)
+            D_clr = tfa.optimizers.CyclicalLearningRate(initial_learning_rate=self.D_lr/2, maximal_learning_rate=self.D_lr*5, scale_fn=lambda x: 1/(2.**(x-1)), step_size=int(2E5)*steps_per_epoch)
+            self.generator_optimizer = tf.optimizers.Adam(learning_rate=G_clr)
+            self.discriminator_optimizer = tf.optimizers.Adam(learning_rate=D_clr)
+            step = np.arange(0, self.max_iter * steps_per_epoch)
+            self.plot_clr(G_clr, D_clr, step)
+
+        elif self.optimizer == 'radam':
+            import tensorflow_addons as tfa
+            G_radam = tfa.optimizers.RectifiedAdam(lr=self.G_lr, beta_1=self.G_beta1, total_steps=10000, warmup_proportion=0.1, min_lr=self.G_lr/10)
+            D_radam = tfa.optimizers.RectifiedAdam(lr=self.D_lr, beta_1=self.D_beta1, total_steps=10000, warmup_proportion=0.1, min_lr=self.D_lr/10)
+            self.generator_optimizer = tfa.optimizers.Lookahead(G_radam, sync_period=6, slow_step_size=0.5)
+            self.discriminator_optimizer = tfa.optimizers.Lookahead(D_radam, sync_period=6, slow_step_size=0.5)
+        elif self.optimizer == 'adamW':
+            import tensorflow_addons as tfa
+            self.generator_optimizer = tfa.optimizers.AdamW(weight_decay=1E-4, lr=self.G_lr, beta_1=self.G_beta1)
+            self.discriminator_optimizer = tfa.optimizers.AdamW(weight_decay=1E-4, lr=self.D_lr, beta_1=self.D_beta1)
+        else:
+            print(self.optimizer, 'not implemented')
+            raise NotImplementedError
 
         # Prepare for check pointing
         self.saver = tf.train.Checkpoint(generator_optimizer=self.generator_optimizer, discriminator_optimizer=self.discriminator_optimizer, generator=self.G, discriminator=self.D,)
@@ -354,6 +382,18 @@ class WGANGP:
         self.plot_loss()
         return
 
+    def plot_clr(self, G_clr, D_clr, step):
+        fig, ax = plt.subplots()
+        lr = G_clr(step)
+        ax.plot(step, lr, label='G lr')
+        lr = D_clr(step)
+        ax.plot(step, lr, ls='--', label='D lr')
+        ax.set_xlabel("Steps")
+        ax.set_ylabel("Learning Rate")
+        ax.grid(True)
+        ax.legend(fontsize=10)
+        plt.savefig(os.path.join(self.train_folder, 'learningrate.pdf'))
+
     def plot_loss(self):
         with open(os.path.join(self.train_folder, 'result.json'), 'r') as fp:
             meta_data = json.load(fp)
@@ -364,7 +404,7 @@ class WGANGP:
         ax.set_xlabel("Iteration", fontsize=15)
         ax.set_ylabel("Wasserstein Loss", fontsize=15)
         ax.grid(True)
-        ax.legend(fontsize=20)
+        ax.legend(fontsize=10)
         plt.savefig(os.path.join(self.train_folder, 'loss.pdf'))
         logging.info('Save to %s', os.path.join(self.train_folder, 'loss.pdf'))
 
