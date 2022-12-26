@@ -20,7 +20,7 @@ Request_memory = 12 GB
 Request_disk   = 5 GB
 
 #####         task=$1         input=$2                         output=model_config
-Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5   GANv1_GANv1-wrong
+Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5   GANv1_GANv1-wrong
 Queue 1
 #Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 GANv1_GANv1
 #Queue 1

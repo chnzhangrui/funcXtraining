@@ -48,9 +48,12 @@ def main(args):
         results['chi2'].append(chi2)
         results['iter'].append(iteration)
         results['total'].append(tot_iter)
-    pd.DataFrame.from_dict(results).sort_values(by=['particle', 'eta', 'model', 'hp']).to_csv(f'{args.input}/results.csv', index=False)
-    print('\033[92m[INFO] Save to\033[0m', f'{args.input}/results.csv')
-    os.system(f'tablign {args.input}/results.csv')
+    dfs = pd.DataFrame.from_dict(results).sort_values(by=['particle', 'eta', 'model', 'hp'])
+    for particle, df in dfs.groupby(by=['particle']):
+        df.to_csv(f'{args.input}/results_{particle}.csv', index=False)
+        print('\033[92m[INFO] Save to\033[0m', f'{args.input}/results_{particle}.csv')
+        os.system(f'tablign {args.input}/results_{particle}.csv')
+        print()
 
 if __name__ == '__main__':
 

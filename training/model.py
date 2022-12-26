@@ -358,8 +358,7 @@ class WGANGP:
         with open(os.path.join(self.train_folder, 'result.json'), 'r') as fp:
             meta_data = json.load(fp)
 
-        ax = plt.gca()
-        ax.cla()
+        fig, ax = plt.subplots()
         ax.plot(meta_data['Iteration'], meta_data['Gloss'], label="Generator")
         ax.plot(meta_data['Iteration'], meta_data['Dloss'], label="Discriminator")
         ax.set_xlabel("Iteration", fontsize=15)

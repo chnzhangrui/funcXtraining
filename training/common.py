@@ -4,7 +4,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from pdb import set_trace
 
-def plot_frame(categories, xlabel, ylabel, summary_panel=True):
+def plot_frame(categories, xlabel, ylabel, summary_panel=False):
     if summary_panel:
         categories = np.append(categories, 0)
     length = len(categories)
