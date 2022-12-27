@@ -7,23 +7,8 @@ import matplotlib.pyplot as plt
 from model import WGANGP
 from pdb import set_trace
 from common import *
+from data import *
 np.set_printoptions(suppress=True)
-
-def particle_mass(particle=None):
-    if 'photon' in particle or particle == 22:
-        mass = 0
-    elif 'electron' in particle or particle == 11:
-        mass = 0.512
-    elif 'pion' in particle or particle == 211:
-        mass = 139.6
-    elif 'proton' in particle or particle == 2212:
-        mass = 938.27
-    return mass
-
-def kin_to_label(kin):
-    kin_min = np.min(kin)
-    kin_max = np.max(kin)
-    return np.log10(kin / kin_min) / np.log10(kin_max / kin_min)
 
 def apply_mask(mask, X_train, input_file):
     np.seterr(divide = 'ignore', invalid='ignore')
@@ -108,9 +93,8 @@ def main(args):
     # loading the .hdf5 datasets
     photon_file = h5py.File(f'{input_file}', 'r')
     
-    mass = particle_mass(particle)
-    energies = photon_file['incident_energies'][:]
-    kin = np.sqrt( np.square(energies) + np.square(mass) ) - mass
+    energies = get_energies(input_file)
+    kin, particle = get_kin(input_file)
     label_kin = kin_to_label(kin)
     
     X_train = photon_file['showers'][:]
@@ -121,7 +105,9 @@ def main(args):
         else:
             mask = args.mask
         X_train = apply_mask(mask, X_train, input_file)
-    X_train /= kin
+
+    X_train = preprocessing(X_train, kin, name=args.preprocess)
+    plot_input(args, X_train)
 
     if 'photon' in particle:
         hp_config = {
@@ -162,6 +148,7 @@ def main(args):
             'discriminatorLayers': [800, 400, 200],
             'nvoxels': X_train.shape[1],
             'use_bias': True,
+            'preprocess': args.preprocess,
         }
     if args.config:
         from quickstats.utils.common_utils import combine_dict
@@ -175,9 +162,17 @@ def main(args):
         'max_iter': 1E6 if not args.debug else 100,
         'cache': False,
     }
-    
+
     wgan = WGANGP(job_config=job_config, hp_config=hp_config, logger=__file__)
     wgan.train(X_train, label_kin)
+
+def plot_input(args, X_train):
+    kin, particle = get_kin(args.input_file)
+    categories, xtrain_list = split_energy(args.input_file, X_train)
+    out_file = os.path.join(args.output_path, f'input_{particle}_{args.preprocess}.pdf')
+    plot_energy_vox(categories, [xtrain_list], label_list=['Input'], nvox='all', logx=False, \
+            particle=particle, output=out_file, draw_ref=False, xlabel='Energy of voxel as training input [MeV]')
+    print('\033[92m[INFO] Save to\033[0m', out_file)
 
 if __name__ == '__main__':
 
@@ -189,6 +184,7 @@ if __name__ == '__main__':
     parser.add_argument('-m', '--model', type=str, required=False, default=None, help='Model name (default: %(default)s)')
     parser.add_argument('--mask', type=float, required=False, default=None, help='Mask low noisy voxels in keV (default: %(default)s)')
     parser.add_argument('--debug', required=False, action='store_true', help='Debug mode (default: %(default)s)')
+    parser.add_argument('-p', '--preprocess', type=str, required=False, default=None, help='Preprocessing name (default: %(default)s)')
 
     args = parser.parse_args()
     main(args)

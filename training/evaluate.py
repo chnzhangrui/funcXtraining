@@ -7,12 +7,12 @@ import pandas as pd
 import matplotlib.pyplot as plt
 plt.rcParams.update({'figure.max_open_warning': 0})
 from model import WGANGP
-from train import particle_mass, kin_to_label
 from quickstats.utils.common_utils import execute_multi_tasks
 from quickstats.maths.numerics import get_bins_given_edges
 from itertools import repeat
 from glob import glob
 from common import *
+from data import *
 from pdb import set_trace
 
 def get_E_truth(input_file, mode='total'):
@@ -37,19 +37,14 @@ def get_E_truth(input_file, mode='total'):
     return categories, vector_list
 
 def get_E_gan(model_i, input_file, train_path, eta_slice, mode='total'):
-
-    particle = input_file.split('/')[-1].split('_')[-2][:-1]
-    photon_file = h5py.File(f'{input_file}', 'r')
-    mass = particle_mass(particle)
-    energies = photon_file['incident_energies'][:]
-    kin = np.sqrt( np.square(energies) + np.square(mass) ) - mass
+    kin, particle = get_kin(input_file)
     label_kin = kin_to_label(kin)
 
     config = json.load(open(os.path.join(train_path, f'{particle}s_eta_{eta_slice}', 'train', 'config.json')))
 
     wgan = WGANGP(job_config=config['job_config'], hp_config=config['hp_config'], logger=__file__)
     E_vox = wgan.predict(model_i=model_i, labels=label_kin)
-    E_vox *= kin
+    E_vox = preprocessing(E_vox, kin, name=args.preprocess, reverse=True)
     E_tot = np.array(E_vox).sum(axis=-1)
 
     if mode == 'total':
@@ -151,38 +146,6 @@ def plot_model_i(args, model_i):
     print('\033[92m[INFO] Evaluate result\033[0m', 'model', model_i, 'chi2', f'{chi2_results["All"]:.2f}', f'time (truth) {truth_time:.1f}s (gan) {gan_time:.1f}s (plot) {plot_time:.1f}s')
     return chi2_results
 
-def plot_energy_vox(categories, E_vox_list, label_list=None, nvox='all', output=None):
-    np.seterr(divide = 'ignore', invalid='ignore')
-    GeV = 1 # no energy correction
-    if nvox == 'all': loop = ['all']
-    else: loop = range(nvox)
-    for vox_i in loop:
-        fig, axes = plot_frame(categories, xlabel=f"Log(Energy of voxel {vox_i} [MeV])", ylabel="Events")
-        for index, energy in enumerate(categories):
-            ax = axes[index]
-            for i, E_list in enumerate(E_vox_list):
-                if nvox == 'all':
-                    x = np.log10(E_list[index][:,:].flatten() / GeV)
-                else:
-                    x = np.log10(E_list[index][:,vox_i].flatten() / GeV)
-                if i == 0:
-                    low, high = np.nanmin(x[x != -np.inf]), np.max(x)
-                ax.hist(x, range=(low,high), bins=40, histtype='step', label=None if label_list is None else label_list[i]) # [GeV]
-            ax.axvline(x=-3, ymax=0.5, color='r', ls='--', label='MeV')
-            ax.axvline(x=-6, ymax=0.5, color='b', ls='--', label='keV')
-            ax.ticklabel_format(style='plain')
-            ax.ticklabel_format(useOffset=False, style='plain')
-            ax.set_yscale('log')
-            ax.legend(loc='center left')
-
-        ax = axes[-1]
-        plt.tight_layout()
-        if output is not None:
-            plot_name = output.format(vox_i=vox_i)
-            os.makedirs(os.path.dirname(plot_name), exist_ok=True)
-            plt.savefig(plot_name)
-            print('\033[92m[INFO] Save to\033[0m', plot_name)
-
 def chunks(lst, n):
     """Yield successive n-sized chunks from lst."""
     for i in range(0, len(lst), n):
@@ -207,7 +170,7 @@ def best_ckpt(args, df):
 
         categories = [int(i.replace(' MeV', '')) for i in df if 'MeV' in i]
         chi2_list = [df[f'{c} MeV'].values for c in categories]
-        fig, axes = plot_frame(categories, xlabel="Iterations", ylabel="$\chi^{2}$/NDF")
+        fig, axes = plot_frame(categories + ['All energies'], xlabel="Iterations", ylabel="$\chi^{2}$/NDF", add_summary_panel=False)
         for index, energy in enumerate(categories):
             ax = axes[index]
             ax.scatter(x, chi2_list[index], c="k", edgecolors="k", alpha=0.9)
@@ -216,12 +179,11 @@ def best_ckpt(args, df):
             best_y_j = float(df[df['ckpt']==int(best_x/1000)][f'{energy} MeV'])
             ax.scatter(best_x_i, best_y_i, c="orange")
             ax.scatter(best_x, best_y_j, c="r")
-            ax.text(0.98, 0.98, "Iter {}\n$\chi^2$ = {:.1f}\nSel. iter {}\n$\chi^2$ = {:.1f}".format(best_x_i, best_y_i, best_x, best_y_j), transform=ax.transAxes, va="top", ha="right", fontsize=10, bbox=dict(facecolor='w', alpha=0.8, edgecolor='w'))
+            ax.text(0.98, 0.97, "Iter {}\n$\chi^2$ = {:.1f}\nSel. iter {}\n$\chi^2$ = {:.1f}".format(best_x_i, best_y_i, best_x, best_y_j), transform=ax.transAxes, va="top", ha="right", fontsize=10, bbox=dict(facecolor='w', alpha=0.8, edgecolor='w'))
             ymin, ymax = ax.get_ylim()
             ax.set_ylim(max(0, ymin), min(50, ymax))
 
         ax = axes[-1]
-        ax.axis("on")
         ax.scatter(x, y, c="k", edgecolors="k", alpha=0.9)
         ax.scatter(best_x, best_y, c="r")
         eta_min, eta_max = tuple(args.eta_slice.split('_'))
@@ -250,7 +212,18 @@ def best_ckpt(args, df):
         # Plot 'masking' distribution; 'masking' means to remove voxel energies below a threshold of 1keV or 1MeV
         categories, E_gan_list = get_E_gan(model_i=int(best_df["ckpt"]), input_file=args.input_file, train_path=args.train_path, eta_slice=args.eta_slice, mode='voxel')
         categories, E_tru_list = get_E_truth(args.input_file, mode='voxel')
-        plot_energy_vox(categories, [E_tru_list, E_gan_list], label_list=['Geant4', 'GAN'], nvox='all', output=vox_name)
+        kin, particle = get_kin(args.input_file)
+        categories, kin_list = split_energy(args.input_file, kin)
+        xlabel = f"Energy of voxel {vox_i} [MeV]"
+        plot_energy_vox(categories, [E_tru_list, E_gan_list], label_list=['Geant4', 'GAN'], nvox='all', \
+                logx=False, particle=particle, output=vox_name, xlabel=xlabel)
+        plot_energy_vox(categories, [E_tru_list, E_gan_list], label_list=['Geant4', 'GAN'], nvox='all', \
+                logx=True, particle=particle, output=vox_name.replace('.pdf', '_logx.pdf'), xlabel="$-$" + f"Log({xlabel})")
+        xlabel += " / kinematics"
+        plot_energy_vox(categories, [E_tru_list, E_gan_list], label_list=['Geant4', 'GAN'], kin_list=kin_list, nvox='all', \
+                logx=False, particle=particle, output=vox_name.replace('.pdf', '_normkin.pdf'), draw_ref=False, xlabel=xlabel)
+        plot_energy_vox(categories, [E_tru_list, E_gan_list], label_list=['Geant4', 'GAN'], kin_list=kin_list, nvox='all', \
+                logx=True, particle=particle, output=vox_name.replace('.pdf', '_normkin_logx.pdf'), draw_ref=False, xlabel="$-$" + f"Log({xlabel})")
 
 
 def main(args):
@@ -282,6 +255,7 @@ if __name__ == '__main__':
     parser.add_argument('-t', '--train_path', type=str, required=True, default='../output/dataset1/v1', help='--out_path from train.py (default: %(default)s)')
     parser.add_argument('-e', '--eta_slice', type=str, required=False, default='20_25', help='--out_path from train.py (default: %(default)s)')
     parser.add_argument('--debug', required=False, action='store_true', help='Debug mode (default: %(default)s)')
+    parser.add_argument('-p', '--preprocess', type=str, required=False, default=None, help='Preprocessing name (default: %(default)s)')
 
     args = parser.parse_args()
     main(args)

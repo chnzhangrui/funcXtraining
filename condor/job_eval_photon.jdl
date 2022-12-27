@@ -20,8 +20,8 @@ Request_memory = 12 GB
 Request_disk   = 5 GB
 
 #####         task=$1         input=$2                         output=model_config
-Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5   GANv1_GANv1-wrong
-Queue 1
+#Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 GANv1_GANv1-wrong
+#Queue 1
 #Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 GANv1_GANv1
 #Queue 1
 #Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 noBN_GANv2
@@ -106,7 +106,6 @@ Queue 1
 #Queue 1
 #Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo4-M1
 #Queue 1
-#
 #Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo4-Mn1000
 #Queue 1
 #Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo4-Mn100
@@ -115,3 +114,18 @@ Queue 1
 #Queue 1
 #Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo4-Mn1
 #Queue 1
+
+Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo14-M1
+Queue 1
+Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo15-M1
+Queue 1
+Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo16-M1
+Queue 1
+Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo12-M1
+Queue 1
+Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo17
+Queue 1
+Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo4-M1-Pneglog10plus1
+Queue 1
+Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo4-Mn1-Pneglog10plus1
+Queue 1
