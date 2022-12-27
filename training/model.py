@@ -85,7 +85,8 @@ class WGANGP:
             self.generator_optimizer = tf.optimizers.Adam(learning_rate=G_clr)
             self.discriminator_optimizer = tf.optimizers.Adam(learning_rate=D_clr)
             step = np.arange(0, self.max_iter * steps_per_epoch)
-            self.plot_clr(G_clr, D_clr, step)
+            if ('train' in logger):
+                self.plot_clr(G_clr, D_clr, step)
 
         elif self.optimizer == 'radam':
             import tensorflow_addons as tfa

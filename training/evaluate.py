@@ -218,7 +218,7 @@ def best_ckpt(args, df):
         categories, E_tru_list = get_E_truth(args.input_file, mode='voxel')
         kin, particle = get_kin(args.input_file)
         categories, kin_list = split_energy(args.input_file, kin)
-        xlabel = f"Energy of voxel {vox_i} [MeV]"
+        xlabel = f"Energy of voxel [MeV]"
         plot_energy_vox(categories, [E_tru_list, E_gan_list], label_list=['Geant4', 'GAN'], nvox='all', \
                 logx=False, particle=particle, output=vox_name, xlabel=xlabel)
         plot_energy_vox(categories, [E_tru_list, E_gan_list], label_list=['Geant4', 'GAN'], nvox='all', \
