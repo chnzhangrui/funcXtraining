@@ -17,20 +17,21 @@ prep=`echo $config_mask | cut -d '-' -f 3 | cut -d 'P' -f 2`
 
 if [[ $mask == ?(n)+([0-9]) ]]; then
     version='v2'
-    addition="--mask=${mask//n/-}"
+    train_addition="--mask=${mask//n/-}"
 else
     version='v1'
-    addition=""
+    train_addition=""
 fi
 
 if [[ ! -z "$prep" ]]; then
-    addition="$addition -p $prep"
+    train_addition="$train_addition -p $prep"
+    evaluate_addition="-p $prep"
 fi
 
 if [[ ${task} == *'train'* ]]; then
-    command="python train.py -i ${input} -m ${model} -o ../output/dataset1/${version}/${output} -c ../config/config_${config}.json ${addition}"
+    command="python train.py -i ${input} -m ${model} -o ../output/dataset1/${version}/${output} -c ../config/config_${config}.json ${train_addition}"
 else
-    command="python evaluate.py -i ${input} -t ../output/dataset1/${version}/${output}"
+    command="python evaluate.py -i ${input} -t ../output/dataset1/${version}/${output} ${evaluate_addition}"
 fi
 echo $command
 $command

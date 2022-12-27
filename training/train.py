@@ -45,7 +45,6 @@ def apply_mask(mask, X_train, input_file):
             high = 0.1
         else:
             high = 1
-        print(x.max(), energy, high)
         n, _, _ = ax.hist(x, bins=100, range=(0,high))
         ax.set_yscale('symlog')
         ax.set_ylim(bottom=0)
@@ -106,8 +105,10 @@ def main(args):
             mask = args.mask
         X_train = apply_mask(mask, X_train, input_file)
 
-    X_train = preprocessing(X_train, kin, name=args.preprocess)
-    plot_input(args, X_train)
+    if args.preprocess == 'log10':
+        X_train, scale = preprocessing(X_train, kin, name=args.preprocess, input_file=input_file)
+    else:
+        X_train = preprocessing(X_train, kin, name=args.preprocess, input_file=input_file)
 
     if 'photon' in particle:
         hp_config = {
@@ -164,12 +165,15 @@ def main(args):
     }
 
     wgan = WGANGP(job_config=job_config, hp_config=hp_config, logger=__file__)
+    with open(f'{wgan.train_folder}/scale_{args.preprocess}.json', 'w') as fp:
+        json.dump(scale, fp, indent=2)
+    plot_input(args, X_train, output=wgan.train_folder)
     wgan.train(X_train, label_kin)
 
-def plot_input(args, X_train):
+def plot_input(args, X_train, output):
     kin, particle = get_kin(args.input_file)
     categories, xtrain_list = split_energy(args.input_file, X_train)
-    out_file = os.path.join(args.output_path, f'input_{particle}_{args.preprocess}.pdf')
+    out_file = os.path.join(output, f'input_{particle}_{args.preprocess}.pdf')
     plot_energy_vox(categories, [xtrain_list], label_list=['Input'], nvox='all', logx=False, \
             particle=particle, output=out_file, draw_ref=False, xlabel='Energy of voxel as training input [MeV]')
     print('\033[92m[INFO] Save to\033[0m', out_file)

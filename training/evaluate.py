@@ -44,7 +44,11 @@ def get_E_gan(model_i, input_file, train_path, eta_slice, mode='total'):
 
     wgan = WGANGP(job_config=config['job_config'], hp_config=config['hp_config'], logger=__file__)
     E_vox = wgan.predict(model_i=model_i, labels=label_kin)
-    E_vox = preprocessing(E_vox, kin, name=args.preprocess, reverse=True)
+    if args.preprocess == 'log10':
+        scale = os.path.join(train_path, f'{particle}s_eta_{eta_slice}', 'train', f'scale_{args.preprocess}.json')
+        E_vox = preprocessing(E_vox, kin, name=args.preprocess, reverse=True, input_file=scale)
+    else:
+        E_vox = preprocessing(E_vox, kin, name=args.preprocess, reverse=True)
     E_tot = np.array(E_vox).sum(axis=-1)
 
     if mode == 'total':
@@ -229,14 +233,17 @@ def best_ckpt(args, df):
 def main(args):
     particle = args.input_file.split('/')[-1].split('_')[-2][:-1]
     models = glob(os.path.join(args.train_path, f'{particle}s_eta_{args.eta_slice}', 'checkpoints', 'model-*.index'))
+    models = [int(m.split('/')[-1].split('-')[-1].split('.')[0]) for m in models]
+    models.sort(reverse = True)
+    if args.range:
+        low, high = args.range.split('_')
+        models = models[int(low):int(high)]
+
     if not models:
         print('\033[91m[ERROR] No model is found at\033[0m', os.path.join(args.train_path, f'{particle}s_eta_{args.eta_slice}', 'checkpoints', 'model-*.index'))
         return
     else:
         print('\033[92m[INFO] Evaluate\033[0m', particle, args.input_file, f'| {len(models)} models')
-
-    models = [int(m.split('/')[-1].split('-')[-1].split('.')[0]) for m in models]
-    models.sort(reverse = True)
 
     arguments = (repeat(args), models)
     results = execute_multi_tasks(plot_model_i, *arguments, parallel=-1)
@@ -256,6 +263,7 @@ if __name__ == '__main__':
     parser.add_argument('-e', '--eta_slice', type=str, required=False, default='20_25', help='--out_path from train.py (default: %(default)s)')
     parser.add_argument('--debug', required=False, action='store_true', help='Debug mode (default: %(default)s)')
     parser.add_argument('-p', '--preprocess', type=str, required=False, default=None, help='Preprocessing name (default: %(default)s)')
+    parser.add_argument('-r', '--range', type=str, required=False, default=None, help='Evaluate range (default: %(default)s)')
 
     args = parser.parse_args()
     main(args)
