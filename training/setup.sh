@@ -19,5 +19,5 @@ unset __conda_setup
 # <<< conda initialize <<<
 
 nvidia-smi
-module load tensorflow/2.6.0
-#conda activate fcg
+#module load tensorflow/2.6.0
+conda activate myenv
