@@ -8,6 +8,7 @@ from model import WGANGP
 from pdb import set_trace
 from common import *
 from data import *
+import re
 np.set_printoptions(suppress=True)
 
 def apply_mask(mask, X_train, input_file):
@@ -105,10 +106,11 @@ def main(args):
             mask = args.mask
         X_train = apply_mask(mask, X_train, input_file)
 
-    if args.preprocess == 'log10':
+    if re.compile("^log10.([0-9]+)+$").match(args.preprocess): # log10.x
         X_train, scale = preprocessing(X_train, kin, name=args.preprocess, input_file=input_file)
     else:
         X_train = preprocessing(X_train, kin, name=args.preprocess, input_file=input_file)
+        scale = None
 
     if 'photon' in particle:
         hp_config = {
@@ -165,8 +167,9 @@ def main(args):
     }
 
     wgan = WGANGP(job_config=job_config, hp_config=hp_config, logger=__file__)
-    with open(f'{wgan.train_folder}/scale_{args.preprocess}.json', 'w') as fp:
-        json.dump(scale, fp, indent=2)
+    if scale:
+        with open(f'{wgan.train_folder}/scale_{args.preprocess}.json', 'w') as fp:
+            json.dump(scale, fp, indent=2)
     plot_input(args, X_train, output=wgan.train_folder)
     wgan.train(X_train, label_kin)
 

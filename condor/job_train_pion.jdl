@@ -7,6 +7,8 @@ GetEnv          = True
 Error           = /afs/cern.ch/work/z/zhangr/FCG/FastCaloChallenge/condor/log/$(ClusterId).$(ProcId).err
 Log             = /afs/cern.ch/work/z/zhangr/FCG/FastCaloChallenge/condor/log/$(ClusterId).log
 Output          = /afs/cern.ch/work/z/zhangr/FCG/FastCaloChallenge/condor/log/$(ClusterId).$(ProcId).out
+notify_user     = rui.zhang@cern.ch
+notification    = always
 stream_output   = False
 stream_error    = False
 Requirements = ((Arch == "X86_64") && (regexp("CentOS7",OpSysAndVer)))
@@ -134,15 +136,19 @@ Request_disk   = 4 GB
 #Queue 1
 #Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo17
 #Queue 1
-#Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo4-M1-Plog10
+#Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo4-M1-Plog10.10
 #Queue 1
-#Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo4-Mn1-Plog10
+#Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo4-Mn1-Plog10.10
 #Queue 1
 #Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo19-M1
 #Queue 1
-Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo20-M1
+#Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo20-M1
+#Queue 1
+#Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo21-M1
+#Queue 1
+#Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo22-M1
+#Queue 1
+Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo4-M1-Plog10.1
 Queue 1
-Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo21-M1
-Queue 1
-Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo22-M1
+Arguments = train ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo4-Mn1-Plog10.1
 Queue 1

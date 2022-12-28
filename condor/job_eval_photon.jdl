@@ -125,15 +125,15 @@ Request_disk   = 5 GB
 #Queue 1
 #Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo17
 #Queue 1
-#Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo4-M1-Plog10
+Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo4-M1-Plog10
+Queue 1
+Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo4-Mn1-Plog10
+Queue 1
+#Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo19-M1
 #Queue 1
-#Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo4-Mn1-Plog10
+#Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo20-M1
 #Queue 1
-Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo19-M1
-Queue 1
-Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo20-M1
-Queue 1
-Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo21-M1
-Queue 1
-Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo22-M1
-Queue 1
+#Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo21-M1
+#Queue 1
+#Arguments = evaluate ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo22-M1
+#Queue 1

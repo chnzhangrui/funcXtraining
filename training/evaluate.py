@@ -155,11 +155,11 @@ def chunks(lst, n):
     for i in range(0, len(lst), n):
         yield lst[i:i + n]
 
-def best_ckpt(args, df):
+def best_ckpt(args, df, cache=False):
     particle = args.input_file.split('/')[-1].split('_')[-2][:-1]
     best_folder = os.path.join(args.train_path, f'{particle}s_eta_{args.eta_slice}', 'selected')
     chi_name = os.path.join(best_folder, 'chi2.pdf')
-    if not os.path.exists(chi_name):
+    if not (os.path.exists(chi_name) and cache):
         os.makedirs(best_folder, exist_ok=True)
         particle_latex_name = {
             'photon': r"$\gamma$",
@@ -202,7 +202,7 @@ def best_ckpt(args, df):
 
     csv_name = os.path.join(best_folder, 'chi2.csv')
     best_df = df[df['All'] == df['All'].min()]
-    if not os.path.exists(csv_name):
+    if not (os.path.exists(csv_name) and cache):
         best_df.to_csv(csv_name, index=False)
 
         models = glob(os.path.join(args.train_path, f'{particle}s_eta_{args.eta_slice}', 'checkpoints', f'model-{int(best_df["ckpt"])}*'))
@@ -212,7 +212,7 @@ def best_ckpt(args, df):
         os.system(f'cp {plot_name} {best_folder}')  
 
     vox_name = os.path.join(best_folder, f'mask_{particle}_{args.eta_slice}_{int(best_df["ckpt"])}_all.pdf')
-    if not os.path.exists(vox_name):
+    if not (os.path.exists(vox_name) and cache):
         # Plot 'masking' distribution; 'masking' means to remove voxel energies below a threshold of 1keV or 1MeV
         categories, E_gan_list = get_E_gan(model_i=int(best_df["ckpt"]), input_file=args.input_file, train_path=args.train_path, eta_slice=args.eta_slice, mode='voxel')
         categories, E_tru_list = get_E_truth(args.input_file, mode='voxel')
@@ -243,7 +243,8 @@ def main(args):
         print('\033[92m[INFO] Evaluate\033[0m', particle, args.input_file, f'| {len(models)} models')
 
     if args.local:
-        chunks = [models[x:x+100] for x in range(0, len(models), 100)]
+        size = 100
+        chunks = [models[x:x+size] for x in range(0, len(models), size)]
     else:
         chunks = [models]
 
@@ -252,8 +253,11 @@ def main(args):
         results = execute_multi_tasks(plot_model_i, *arguments, parallel=-1)
         df = pd.DataFrame(results).sort_values(by=['ckpt'])
         df_name = os.path.join(args.train_path, f'{particle}s_eta_{args.eta_slice}', os.path.splitext(os.path.basename(__file__))[0], f'chi2.csv')
+        if os.path.exists(df_name):
+            df_old = pd.read_csv(df_name)
+            df = pd.concat([df, df_old]).drop_duplicates().reset_index(drop=True)
         df.to_csv(df_name, index=False)
-        print('\033[92m[INFO] Save to\033[0m', df_name)
+        print('\033[92m[INFO] Save to\033[0m', df_name, df)
 
     best_ckpt(args, df)
     
