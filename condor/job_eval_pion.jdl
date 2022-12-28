@@ -122,19 +122,27 @@ Request_disk   = 5 GB
 #Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 noBN_hpo4-Mn1
 #Queue 1
 
-Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo12
+#Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo12
+#Queue 1
+#Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo13
+#Queue 1
+#Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo14-M1
+#Queue 1
+#Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo15-M1
+#Queue 1
+#Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo16-M1
+#Queue 1
+#Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo17
+#Queue 1
+#Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo4-M1-Plog10
+#Queue 1
+#Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo4-Mn1-Plog10
+#Queue 1
+Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo19-M1
 Queue 1
-Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo13
+Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo20-M1
 Queue 1
-Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo14-M1
+Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo21-M1
 Queue 1
-Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo15-M1
-Queue 1
-Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo16-M1
-Queue 1
-Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo17
-Queue 1
-Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNswish_hpo4-M1-Pneglog10plus1
-Queue 1
-Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNswish_hpo4-Mn1-Pneglog10plus1
+Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo22-M1
 Queue 1

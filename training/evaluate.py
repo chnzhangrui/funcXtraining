@@ -235,9 +235,6 @@ def main(args):
     models = glob(os.path.join(args.train_path, f'{particle}s_eta_{args.eta_slice}', 'checkpoints', 'model-*.index'))
     models = [int(m.split('/')[-1].split('-')[-1].split('.')[0]) for m in models]
     models.sort(reverse = True)
-    if args.range:
-        low, high = args.range.split('_')
-        models = models[int(low):int(high)]
 
     if not models:
         print('\033[91m[ERROR] No model is found at\033[0m', os.path.join(args.train_path, f'{particle}s_eta_{args.eta_slice}', 'checkpoints', 'model-*.index'))
@@ -245,13 +242,19 @@ def main(args):
     else:
         print('\033[92m[INFO] Evaluate\033[0m', particle, args.input_file, f'| {len(models)} models')
 
-    arguments = (repeat(args), models)
-    results = execute_multi_tasks(plot_model_i, *arguments, parallel=-1)
-    df = pd.DataFrame(results).sort_values(by=['ckpt'])
+    if args.local:
+        chunks = [models[x:x+100] for x in range(0, len(models), 100)]
+    else:
+        chunks = [models]
 
-    df_name = os.path.join(args.train_path, f'{particle}s_eta_{args.eta_slice}', os.path.splitext(os.path.basename(__file__))[0], f'chi2.csv')
-    df.to_csv(df_name, index=False)
-    print('\033[92m[INFO] Save to\033[0m', df_name)
+    for models in chunks:
+        arguments = (repeat(args), models)
+        results = execute_multi_tasks(plot_model_i, *arguments, parallel=-1)
+        df = pd.DataFrame(results).sort_values(by=['ckpt'])
+        df_name = os.path.join(args.train_path, f'{particle}s_eta_{args.eta_slice}', os.path.splitext(os.path.basename(__file__))[0], f'chi2.csv')
+        df.to_csv(df_name, index=False)
+        print('\033[92m[INFO] Save to\033[0m', df_name)
+
     best_ckpt(args, df)
     
 if __name__ == '__main__':
@@ -263,7 +266,7 @@ if __name__ == '__main__':
     parser.add_argument('-e', '--eta_slice', type=str, required=False, default='20_25', help='--out_path from train.py (default: %(default)s)')
     parser.add_argument('--debug', required=False, action='store_true', help='Debug mode (default: %(default)s)')
     parser.add_argument('-p', '--preprocess', type=str, required=False, default=None, help='Preprocessing name (default: %(default)s)')
-    parser.add_argument('-r', '--range', type=str, required=False, default=None, help='Evaluate range (default: %(default)s)')
+    parser.add_argument('-l', '--local', required=False, action='store_true', help='Split evaluation into chunks (default: %(default)s)')
 
     args = parser.parse_args()
     main(args)
