@@ -13,6 +13,7 @@ from itertools import repeat
 from glob import glob
 from common import *
 from data import *
+import re
 from pdb import set_trace
 
 def get_E_truth(input_file, mode='total'):
@@ -44,7 +45,7 @@ def get_E_gan(model_i, input_file, train_path, eta_slice, mode='total'):
 
     wgan = WGANGP(job_config=config['job_config'], hp_config=config['hp_config'], logger=__file__)
     E_vox = wgan.predict(model_i=model_i, labels=label_kin)
-    if args.preprocess == 'log10':
+    if re.compile("^log10.([0-9.]+)+$").match(args.preprocess): # log10.x
         scale = os.path.join(train_path, f'{particle}s_eta_{eta_slice}', 'train', f'scale_{args.preprocess}.json')
         E_vox = preprocessing(E_vox, kin, name=args.preprocess, reverse=True, input_file=scale)
     else:
@@ -257,7 +258,7 @@ def main(args):
             df_old = pd.read_csv(df_name)
             df = pd.concat([df, df_old]).drop_duplicates().reset_index(drop=True)
         df.to_csv(df_name, index=False)
-        print('\033[92m[INFO] Save to\033[0m', df_name, df)
+        print('\033[92m[INFO] Save to\033[0m', df_name, df.shape)
 
     best_ckpt(args, df)
     

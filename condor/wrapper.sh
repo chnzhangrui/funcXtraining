@@ -31,7 +31,7 @@ fi
 if [[ ${task} == *'train'* ]]; then
     command="python train.py -i ${input} -m ${model} -o ../output/dataset1/${version}/${output} -c ../config/config_${config}.json ${train_addition}"
 else
-    command="python evaluate.py -i ${input} -t ../output/dataset1/${version}/${output} ${evaluate_addition}"
+    command="python evaluate.py -i ${input} -t ../output/dataset1/${version}/${output} --local ${evaluate_addition}"
 fi
 echo $command
 $command
