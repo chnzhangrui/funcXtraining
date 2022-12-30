@@ -14,6 +14,7 @@ config_mask=`echo $output | cut -d '_' -f 2`
 config=`echo $config_mask | cut -d '-' -f 1`
 mask=`echo $config_mask | cut -d '-' -f 2 | cut -d 'M' -f 2`
 prep=`echo $config_mask | cut -d '-' -f 3 | cut -d 'P' -f 2`
+echo prep=$prep
 
 if [[ $mask == ?(n)+([0-9]) ]]; then
     version='v2'
@@ -36,3 +37,4 @@ fi
 echo $command
 $command
 cd -
+unset mask prep config config_mask model train_addition evaluate_addition

@@ -118,6 +118,7 @@ def plot_energy_vox(categories, E_vox_list, label_list=None, kin_list=None, nvox
                 if icurve == 0:
                     low, high = np.nanmin(x[x != -np.inf]), np.nanmax(x[x != np.inf])
                 ax.hist(x, range=(low,high), bins=40, histtype='step', color=colors[icurve], label=None if label_list is None else label_list[icurve]) # [GeV]
+                ax.set_ylim(bottom=0.5)
             if draw_ref is None:
                 if logx:
                     ax.axvline(x=-3, ymax=0.5, color='orange', ls='--', label='MeV')

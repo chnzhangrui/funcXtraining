@@ -13,6 +13,8 @@ def completion_check(ifile):
 
 def main(args):
     files = glob(f'{args.input}/*/*[!.pdf]')
+    exclude = ['slope_study']
+    files = [i for i in files for j in exclude if j not in i]
 
     def get_info(path):
         task = path.split('/')[-2].split('_')

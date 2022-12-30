@@ -106,8 +106,12 @@ def main(args):
             mask = args.mask
         X_train = apply_mask(mask, X_train, input_file)
 
-    if re.compile("^log10.([0-9.]+)+$").match(args.preprocess): # log10.x
-        X_train, scale = preprocessing(X_train, kin, name=args.preprocess, input_file=input_file)
+    if args.preprocess is not None:
+        if (re.compile("^log10.([0-9.]+)+$").match(args.preprocess) \
+                or re.compile("^scale.([0-9.]+)+$").match(args.preprocess) \
+                or re.compile("^slope.([0-9.]+)+$").match(args.preprocess)
+            ): # log10.x, scale.x, slope
+            X_train, scale = preprocessing(X_train, kin, name=args.preprocess, input_file=input_file)
     else:
         X_train = preprocessing(X_train, kin, name=args.preprocess, input_file=input_file)
         scale = None

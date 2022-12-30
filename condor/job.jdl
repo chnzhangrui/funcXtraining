@@ -6,7 +6,7 @@ error                   = log/errors.$(Cluster).$(Process).err
 Requirements = ((Arch == "X86_64") && (regexp("CentOS7",OpSysAndVer)))
 WhenToTransferOutput = ON_EXIT_OR_EVICT
 OnExitRemove         = TRUE
-+JobFlavour = "tomorrow"
++JobFlavour = "testmatch"
 request_GPUs = 1
 request_CPUs = 4
 Request_memory = 8 GB

@@ -45,9 +45,13 @@ def get_E_gan(model_i, input_file, train_path, eta_slice, mode='total'):
 
     wgan = WGANGP(job_config=config['job_config'], hp_config=config['hp_config'], logger=__file__)
     E_vox = wgan.predict(model_i=model_i, labels=label_kin)
-    if re.compile("^log10.([0-9.]+)+$").match(args.preprocess): # log10.x
-        scale = os.path.join(train_path, f'{particle}s_eta_{eta_slice}', 'train', f'scale_{args.preprocess}.json')
-        E_vox = preprocessing(E_vox, kin, name=args.preprocess, reverse=True, input_file=scale)
+    if args.preprocess is not None:
+        if (re.compile("^log10.([0-9.]+)+$").match(args.preprocess) \
+                or re.compile("^scale.([0-9.]+)+$").match(args.preprocess) \
+                or re.compile("^slope.([0-9.]+)+$").match(args.preprocess)
+            ): # log10.x, scale.x, slope
+            scale = os.path.join(train_path, f'{particle}s_eta_{eta_slice}', 'train', f'scale_{args.preprocess}.json')
+            E_vox = preprocessing(E_vox, kin, name=args.preprocess, reverse=True, input_file=scale)
     else:
         E_vox = preprocessing(E_vox, kin, name=args.preprocess, reverse=True)
     E_tot = np.array(E_vox).sum(axis=-1)
