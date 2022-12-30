@@ -1,8 +1,25 @@
 import numpy as np
-import h5py, os
+import h5py, os, glob
 import pandas as pd
 import matplotlib.pyplot as plt
 from pdb import set_trace
+
+def particle_latex_name(particle):
+    return {'photon': r"$\gamma$",
+            'photons': r"$\gamma$",
+            'pion': r"$\pi$",
+            'pions': r"$\pi$",
+            }[particle]
+
+def get_best_mode_i(train_path, particle, eta_slice='20_25'):
+    evaluate_path = os.path.join(train_path, f'{particle}*_eta_{eta_slice}', 'selected', 'model-*.index')
+    models = glob.glob(evaluate_path)
+    if len(models) > 1:
+        print('\033[91m[WARN] Multiple selected models\033[0m', models)
+    elif len(models) < 1:
+        print('\033[91m[ERROR] No selected models\033[0m', evaluate_path)
+        return None
+    return os.path.basename(models[-1]).split('.')[0].split('-')[-1]
 
 def particle_mass(particle=None):
     if 'photon' in particle or particle == 22:
@@ -29,31 +46,42 @@ def get_kin(input_file):
     return kin, particle
 
 def plot_frame(categories, xlabel, ylabel, label_pos='left', add_summary_panel=True):
-    if add_summary_panel:
-        categories = np.append(categories, 0)
-    length = len(categories)
-    width = int(np.ceil(np.sqrt(length)))
-    height = int(np.ceil(length / width))
-    fig, axes = plt.subplots(nrows=width, ncols=height, figsize=(4*width, 4*height))
-    for index, energy in enumerate(categories):
-        ax = axes[(index) // 4, (index) % 4]
+    if len(categories) == 1:
+        width = 1
+        height = 1
+        fig, ax = plt.subplots(nrows=width, ncols=height, figsize=(4*width, 4*height))
         ax.tick_params(axis="both", which="major", width=1, length=6, labelsize=10, direction="in")
         ax.tick_params(axis="both", which="minor", width=0.5, length=3, labelsize=10, direction="in")
         ax.minorticks_on()
-        if index == length-1 and add_summary_panel:
-            ax.axis("off")
-        else:
-            if isinstance(energy, str):
-                energy_legend = energy
+        ax.set_xlabel(xlabel)
+        ax.set_ylabel(ylabel)
+        return fig, [ax]
+    else:
+        if add_summary_panel:
+            categories = np.append(categories, 0)
+        length = len(categories)
+        width = int(np.ceil(np.sqrt(length)))
+        height = int(np.ceil(length / width))
+        fig, axes = plt.subplots(nrows=width, ncols=height, figsize=(4*width, 4*height))
+        for index, energy in enumerate(categories):
+            ax = axes[(index) // 4, (index) % 4]
+            ax.tick_params(axis="both", which="major", width=1, length=6, labelsize=10, direction="in")
+            ax.tick_params(axis="both", which="minor", width=0.5, length=3, labelsize=10, direction="in")
+            ax.minorticks_on()
+            if index == length-1 and add_summary_panel:
+                ax.axis("off")
             else:
-                energy_legend = (str(round(energy / 1000, 1)) + " GeV") if energy > 1024 else (str(energy) + " MeV")
-            if label_pos == 'left':
-                ax.text(0.02, 0.98, energy_legend, transform=ax.transAxes, va="top", ha="left", fontsize=20)
-            elif label_pos == 'right':
-                ax.text(0.98, 0.98, energy_legend, transform=ax.transAxes, va="top", ha="right", fontsize=20)
-            ax.set_xlabel(xlabel)
-            ax.set_ylabel(ylabel)
-    return fig, axes.flatten()
+                if isinstance(energy, str):
+                    energy_legend = energy
+                else:
+                    energy_legend = (str(round(energy / 1000, 1)) + " GeV") if energy > 1024 else (str(energy) + " MeV")
+                if label_pos == 'left':
+                    ax.text(0.02, 0.98, energy_legend, transform=ax.transAxes, va="top", ha="left", fontsize=20)
+                elif label_pos == 'right':
+                    ax.text(0.98, 0.98, energy_legend, transform=ax.transAxes, va="top", ha="right", fontsize=20)
+                ax.set_xlabel(xlabel)
+                ax.set_ylabel(ylabel)
+        return fig, axes.flatten()
 
 def get_energies(input_file):
     photon_file = h5py.File(f'{input_file}', 'r')
@@ -72,6 +100,16 @@ def get_counts(input_file):
     return categories, counts
 
 def split_energy(input_file, vector):
+    if isinstance(vector, dict):
+        new_dict = {}
+        for k in vector:
+            categories, new_dict[k] = _split_energy(input_file, vector[k].reshape(-1,1))
+        return categories, new_dict
+    else:
+        categories, vector_list = _split_energy(input_file, vector)
+        return categories, vector_list
+
+def _split_energy(input_file, vector):
     '''
         Input: h5file and vector with length of nevents
         Output: a list of vectors splitted by energies, and the energies
@@ -85,12 +123,6 @@ def split_energy(input_file, vector):
     return categories, vector_list
 
 def plot_energy_vox(categories, E_vox_list, label_list=None, kin_list=None, nvox='all', output=None, logx=True, particle=None, draw_ref=True, xlabel='E'):
-    particle_latex_name = {
-        'photon': r"$\gamma$",
-        'photons': r"$\gamma$",
-        'pion': r"$\pi$",
-        'pions': r"$\pi$",
-    }
     np.seterr(divide = 'ignore', invalid='ignore')
     GeV = 1 # no energy correction
     if nvox == 'all': loop = ['all']
@@ -135,11 +167,22 @@ def plot_energy_vox(categories, E_vox_list, label_list=None, kin_list=None, nvox
                 ax.legend(loc='center right')
 
         ax = axes[-1]
-        ax.text(0.5, 0.5, particle_latex_name[particle], transform=ax.transAxes, fontsize=20)
+        ax.text(0.5, 0.5, particle_latex_name(particle), transform=ax.transAxes, fontsize=20)
         plt.tight_layout()
         if output is not None:
             plot_name = output.format(vox_i=vox_i)
             os.makedirs(os.path.dirname(plot_name), exist_ok=True)
             plt.savefig(plot_name)
             print('\033[92m[INFO] Save to\033[0m', plot_name)
+
+
+def get_bins_given_edges(low_edge:float, high_edge:float, nbins:int, decimals:int=8, logscale=False):
+    if logscale:
+        bins = np.around(np.geomspace(low_edge, high_edge, num=nbins), decimals)
+    else:
+        bin_width = (high_edge - low_edge) / nbins
+        low_bin_center  = low_edge + bin_width / 2
+        high_bin_center = high_edge - bin_width /2
+        bins = np.around(np.linspace(low_bin_center, high_bin_center, nbins), decimals)
+    return bins
 

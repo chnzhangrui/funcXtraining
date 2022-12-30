@@ -134,34 +134,34 @@ Request_disk   = 5 GB
 #Queue 1
 #Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo17
 #Queue 1
-#Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo4-M1-Plog10.10
+Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo4-M1-Plog10.10
+Queue 1
+Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo4-Mn1-Plog10.10
+Queue 1
+#Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo19-M1
 #Queue 1
-#Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo4-Mn1-Plog10.10
+#Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo20-M1
 #Queue 1
-Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo19-M1
-Queue 1
-Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo20-M1
-Queue 1
-Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo21-M1
-Queue 1
-Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo22-M1
-Queue 1
+#Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo21-M1
+#Queue 1
+#Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo22-M1
+#Queue 1
 #Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo4-M1-Plog10.1
 #Queue 1
 #Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo4-Mn1-Plog10.1
 #Queue 1
-Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo4-M1-Plog10.0.5
-Queue 1
-Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo4-Mn1-Plog10.0.5
-Queue 1
+#Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo4-M1-Plog10.0.5
+#Queue 1
+#Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo4-Mn1-Plog10.0.5
+#Queue 1
 Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo4-M1-Plog10.0.8
 Queue 1
 Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo4-Mn1-Plog10.0.8
 Queue 1
-Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo4-M1-Plog10.0.1
-Queue 1
-Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo4-Mn1-Plog10.0.1
-Queue 1
+#Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo4-M1-Plog10.0.1
+#Queue 1
+#Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo4-Mn1-Plog10.0.1
+#Queue 1
 Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo4-M1-Pscale.1
 Queue 1
 Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo4-Mn1-Pscale.1

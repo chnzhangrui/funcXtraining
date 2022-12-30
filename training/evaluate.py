@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 plt.rcParams.update({'figure.max_open_warning': 0})
 from model import WGANGP
 from quickstats.utils.common_utils import execute_multi_tasks
-from quickstats.maths.numerics import get_bins_given_edges
+#from quickstats.maths.numerics import get_bins_given_edges
 from itertools import repeat
 from glob import glob
 from common import *
@@ -28,16 +28,20 @@ def get_E_truth(input_file, mode='total'):
         E_tot = hlf.GetEtot()
     elif mode == 'voxel':
         E_vox = photon_file['showers'][:]
+    elif mode == 'layer':
+        E_lay = hlf.GetElayers()
 
     if mode == 'total':
         vector = E_tot.reshape(-1,1)
     elif mode == 'voxel':
         vector = E_vox
+    elif mode == 'layer':
+        vector = E_lay
 
     categories, vector_list = split_energy(input_file, vector)
     return categories, vector_list
 
-def get_E_gan(model_i, input_file, train_path, eta_slice, mode='total'):
+def get_E_gan(model_i, input_file, train_path, eta_slice, mode='total', preprocess=None):
     kin, particle = get_kin(input_file)
     label_kin = kin_to_label(kin)
 
@@ -45,24 +49,68 @@ def get_E_gan(model_i, input_file, train_path, eta_slice, mode='total'):
 
     wgan = WGANGP(job_config=config['job_config'], hp_config=config['hp_config'], logger=__file__)
     E_vox = wgan.predict(model_i=model_i, labels=label_kin)
-    if args.preprocess is not None:
-        if (re.compile("^log10.([0-9.]+)+$").match(args.preprocess) \
-                or re.compile("^scale.([0-9.]+)+$").match(args.preprocess) \
-                or re.compile("^slope.([0-9.]+)+$").match(args.preprocess)
+    if preprocess is not None:
+        if (re.compile("^log10.([0-9.]+)+$").match(preprocess) \
+                or re.compile("^scale.([0-9.]+)+$").match(preprocess) \
+                or re.compile("^slope.([0-9.]+)+$").match(preprocess)
             ): # log10.x, scale.x, slope
-            scale = os.path.join(train_path, f'{particle}s_eta_{eta_slice}', 'train', f'scale_{args.preprocess}.json')
-            E_vox = preprocessing(E_vox, kin, name=args.preprocess, reverse=True, input_file=scale)
+            scale = os.path.join(train_path, f'{particle}s_eta_{eta_slice}', 'train', f'scale_{preprocess}.json')
+            E_vox = preprocessing(E_vox, kin, name=preprocess, reverse=True, input_file=scale)
     else:
-        E_vox = preprocessing(E_vox, kin, name=args.preprocess, reverse=True)
-    E_tot = np.array(E_vox).sum(axis=-1)
+        E_vox = preprocessing(E_vox, kin, name=preprocess, reverse=True)
+
+    hlf = HighLevelFeatures(particle, filename=f'{os.path.dirname(input_file)}/binning_dataset_1_{particle}s.xml')
+    hlf.CalculateFeatures(np.array(E_vox))
+
+    if mode == 'total':
+        E_tot = hlf.GetEtot()
+    elif mode == 'voxel':
+        photon_file = h5py.File(f'{input_file}', 'r')
+        E_vox = photon_file['showers'][:]
+    elif mode == 'layer':
+        E_lay = hlf.GetElayers()
 
     if mode == 'total':
         vector = E_tot.reshape(-1,1)
     elif mode == 'voxel':
         vector = E_vox
+    elif mode == 'layer':
+        vector = E_lay
 
     categories, vector_list = split_energy(input_file, vector)
     return categories, vector_list
+
+def plot_energy_layer(particle, model_i, input_file, train_path, eta_slice):
+
+    def merge_energies(E_list):
+        concate = np.concatenate(E_list, axis=0)
+        return [concate.flatten()]
+
+    categories1, E_gan_list = get_E_gan(model_i, input_file=input_file, train_path=train_path, eta_slice=eta_slice, mode='layer')
+    categories2, E_vox_list = get_E_truth(input_file, mode='layer')
+
+    E_vox_list_merge_energy, E_gan_list_merge_energy = {}, {}
+    for ilayer in E_vox_list:
+        E_vox_list_merge_energy[ilayer] = merge_energies(E_vox_list[ilayer])
+        E_gan_list_merge_energy[ilayer] = merge_energies(E_gan_list[ilayer])
+
+    for ilayer in E_vox_list.keys():
+        ax_text = particle_latex_name(particle) + ' Layer {}'.format(ilayer)
+        plot_name = os.path.join(args.train_path, f'{particle}s_eta_{args.eta_slice}', 'selected', 'layer', f'plot_{particle}_{args.eta_slice}_{model_i}_layer{ilayer}.pdf')
+        config = {
+            'plot_chi2': False,
+            'ax_text': ax_text,
+            'ax_pos': (0.4, 0.93),
+            'leg_loc': "best",
+            'logx': True,
+            'logy': True,
+            'range_factor_factor': (30000, 20000),
+            'leg_size': 10,
+            'nbins': 80,
+            'output_name': plot_name,
+        }
+        plot_Etot([''], E_vox_list_merge_energy[ilayer], E_gan_list_merge_energy[ilayer], config=config)
+
 
 def chi2testWW(y1, y1_err, y2, y2_err):
     zeros = (y1 == 0) * (y2 == 0)
@@ -79,20 +127,22 @@ def chi2testWW(y1, y1_err, y2, y2_err):
     chi2 = (delta * delta / sigma).sum()
     return chi2, ndf
 
-def plot_Egan(args, categories, Etot_list, Egan_list, model_i):
-    particle = args.input_file.split('/')[-1].split('_')[-2][:-1]
-    fig, axes = plot_frame(categories, xlabel="Energy [GeV]", ylabel="Probability")
-    particle_latex_name = {
-        'photon': r"$\gamma$",
-        'photons': r"$\gamma$",
-        'pion': r"$\pi$",
-        'pions': r"$\pi$",
-    }
-    results = [('ckpt', model_i)]
+def plot_Etot(categories, Etot_list, Egan_list, config=None):
+    plot_chi2 = config.get('plot_chi2', False)
+    ax_text = config.get('ax_text', '')
+    ax_pos = config.get('ax_pos', (0.0, 0.1))
+    output_name = config.get('output_name', None)
+    leg_loc = config.get('leg_loc', "upper left")
+    logx = config.get('logx', False)
+    logy = config.get('logy', False)
+    plot_range_factor = config.get('range_factor_factor', (2, 10))
+    leg_size = config.get('leg_size', 20)
+    nbins = config.get('nbins', 30)
+
+    fig, axes = plot_frame(categories, xlabel="Energy [GeV]", ylabel="Entries")
+    results = []
     dict([(f'{energy} MeV', 0) for energy in categories])
 
-
-    nbins = 30
     ndf_tot = chi2_tot = 0
     for index, energy in enumerate(categories):
         # Convert energy to GeV
@@ -102,9 +152,12 @@ def plot_Egan(args, categories, Etot_list, Egan_list, model_i):
 
         ax = axes[index]
         median = np.median(etot)
-        high = median + min([np.absolute(np.max(etot) - median), np.absolute(np.quantile(etot, q=1-0.05) - median) * 2, np.absolute(np.quantile(etot, q=1-0.16) - median) * 10])
-        low  = median - min([np.absolute(np.min(etot) - median), np.absolute(np.quantile(etot, q=0.05) - median) * 2, np.absolute(np.quantile(etot, q=1-0.16) - median) * 10])
-        bins = get_bins_given_edges(low, high, nbins, 3)
+        high = median + min([np.absolute(np.max(etot) - median), np.absolute(np.quantile(etot, q=1-0.05) - median) * plot_range_factor[0], np.absolute(np.quantile(etot, q=1-0.16) - median) * plot_range_factor[1]])
+        low  = median - min([np.absolute(np.min(etot) - median), np.absolute(np.quantile(etot, q=0.05) - median) * plot_range_factor[0], np.absolute(np.quantile(etot, q=1-0.16) - median) * plot_range_factor[1]])
+        if logx:
+            bins = get_bins_given_edges(low if low > 0 else 0.00001, high, nbins, 9, logscale=logx)
+        else:
+            bins = get_bins_given_edges(low, high, nbins, 3, logscale=logx)
         y_tot, x_tot, _ = ax.hist(np.clip(etot, bins[0], bins[-1]), bins=bins, label='G4', histtype='step', density=False, color='k', linestyle='-', alpha=0.8, linewidth=2.)
         y_gan, x_gan, _ = ax.hist(np.clip(egan, bins[0], bins[-1]), bins=bins, label='GAN', histtype='step', density=False, color='r', linestyle='--', alpha=0.8, linewidth=2.)
         y_tot_err = np.sqrt(y_tot)
@@ -112,24 +165,36 @@ def plot_Egan(args, categories, Etot_list, Egan_list, model_i):
         chi2, ndf = chi2testWW(y_tot, y_tot_err, y_gan, y_gan_err)
         chi2_tot += chi2
         ndf_tot += ndf
-        energy_legend = (str(round(energy / 1000, 1)) + " GeV") if energy > 1024 else (str(energy) + " MeV")
         results.append((f'{energy} MeV', chi2/ndf))
-        ax.text(0.02, 0.88, "$\chi^2$:{:.1f}".format(chi2 / ndf), transform=ax.transAxes, va="top", ha="left", fontsize=20)
+        if logx:
+            ax.set_xscale('log')
+        if logy:
+            ax.set_yscale('symlog')
+        if plot_chi2:
+            ax.text(0.02, 0.88, "$\chi^2$:{:.1f}".format(chi2 / ndf), transform=ax.transAxes, va="top", ha="left", fontsize=20)
 
     handles, labels = ax.get_legend_handles_labels()
 
     chi2_o_ndf = chi2_tot/ndf_tot
     results.insert(1, (f'All', chi2_o_ndf))
     ax = axes[-1]
-    ax.legend(handles=handles[:2], labels=["Geant4", "GAN"], loc="upper left", frameon=False, fontsize=20)
-    eta_min, eta_max = tuple(args.eta_slice.split('_'))
-    ax.text(0.0, 0.1, particle_latex_name[particle]+ ", " + str("{:.2f}".format(int(eta_min) / 100, 2)) + r"$<|\eta|<$" + str("{:.2f}\n".format((int(eta_max)) / 100, 2)) + "Iter: {}\n$\chi^2$/NDF = {:.0f}/{:.0f}\n= {:.1f}".format(int(model_i)*1000, chi2_tot, ndf_tot, chi2_o_ndf), transform=ax.transAxes, fontsize=20)
+    ax.legend(handles=handles[:2], labels=["Geant4", "GAN"], loc=leg_loc, frameon=False, fontsize=leg_size)
+    if plot_chi2:
+        ax.text(ax_pos[0], ax_pos[1], ax_text + "\n$\chi^2$/NDF = {:.0f}/{:.0f}\n= {:.1f}".format(chi2_tot, ndf_tot, chi2_o_ndf), transform=ax.transAxes, fontsize=leg_size)
+    else:
+        ax.text(ax_pos[0], ax_pos[1], ax_text, transform=ax.transAxes, fontsize=leg_size)
+    if logx:
+        ax.set_xscale('symlog')
+    if logy:
+        ax.set_yscale('symlog')
 
     plt.tight_layout()
-    plot_name = os.path.join(args.train_path, f'{particle}s_eta_{args.eta_slice}', os.path.splitext(os.path.basename(__file__))[0], f'plot_{particle}_{args.eta_slice}_{model_i}.pdf')
-    plt.savefig(plot_name)
-    fig.clear()
-    plt.close(fig)
+    if output_name:
+        os.makedirs(os.path.dirname(output_name), exist_ok=True)
+        plt.savefig(output_name)
+        print('\033[92m[INFO] Save to\033[0m', output_name)
+        fig.clear()
+        plt.close(fig)
     return dict(results)
 
 def plot_model_i(args, model_i):
@@ -147,13 +212,21 @@ def plot_model_i(args, model_i):
     categories, Etot_list = get_E_truth(args.input_file)
     truth_time = time.time() - start_time
     start_time = time.time()
-    categories, Egan_list = get_E_gan(model_i=model_i, input_file=args.input_file, train_path=args.train_path, eta_slice=args.eta_slice)
+    categories, Egan_list = get_E_gan(model_i=model_i, input_file=args.input_file, train_path=args.train_path, eta_slice=args.eta_slice, preprocess=args.preprocess)
     gan_time = time.time() - start_time
     start_time = time.time()
-    chi2_results = plot_Egan(args, categories, Etot_list, Egan_list, model_i)
+
+    eta_min, eta_max = tuple(args.eta_slice.split('_'))
+    ax_text = particle_latex_name(particle)+ ", " + str("{:.2f}".format(int(eta_min) / 100, 2)) + r"$<|\eta|<$" + str("{:.2f}\n".format((int(eta_max)) / 100, 2)) + "Iter: {}".format(int(model_i)*1000)
+    config = {
+        'plot_chi2': True,
+        'ax_text': ax_text,
+        'output_name': plot_name, 
+    }
+    chi2_results = plot_Etot(categories, Etot_list, Egan_list, config)
     plot_time = time.time() - start_time
     print('\033[92m[INFO] Evaluate result\033[0m', 'model', model_i, 'chi2', f'{chi2_results["All"]:.2f}', f'time (truth) {truth_time:.1f}s (gan) {gan_time:.1f}s (plot) {plot_time:.1f}s')
-    return chi2_results
+    return {f'ckpt': model_i, **chi2_results}
 
 def chunks(lst, n):
     """Yield successive n-sized chunks from lst."""
@@ -166,12 +239,6 @@ def best_ckpt(args, df, cache=False):
     chi_name = os.path.join(best_folder, 'chi2.pdf')
     if not (os.path.exists(chi_name) and cache):
         os.makedirs(best_folder, exist_ok=True)
-        particle_latex_name = {
-            'photon': r"$\gamma$",
-            'photons': r"$\gamma$",
-            'pion': r"$\pi$",
-            'pions': r"$\pi$",
-        }
         best_x = int(df[df['All'] == df['All'].min()]['ckpt'] * 1000)
         best_y = float(df['All'].min())
         x = df['ckpt'] * 1000
@@ -196,7 +263,7 @@ def best_ckpt(args, df, cache=False):
         ax.scatter(x, y, c="k", edgecolors="k", alpha=0.9)
         ax.scatter(best_x, best_y, c="r")
         eta_min, eta_max = tuple(args.eta_slice.split('_'))
-        ax.text(0.98, 0.98, particle_latex_name[particle] + "\n" + str("{:.2f}".format(int(eta_min) / 100, 2)) + r"$<|\eta|<$" + str("{:.2f}\n".format((int(eta_min) + 5) / 100, 2)) + "Iter {}\n$\chi^2$ = {:.1f}".format(best_x, best_y), transform=ax.transAxes, va="top", ha="right", fontsize=15, bbox=dict(facecolor='w', alpha=0.8, edgecolor='w'))
+        ax.text(0.98, 0.98, particle_latex_name(particle) + "\n" + str("{:.2f}".format(int(eta_min) / 100, 2)) + r"$<|\eta|<$" + str("{:.2f}\n".format((int(eta_min) + 5) / 100, 2)) + "Iter {}\n$\chi^2$ = {:.1f}".format(best_x, best_y), transform=ax.transAxes, va="top", ha="right", fontsize=15, bbox=dict(facecolor='w', alpha=0.8, edgecolor='w'))
         ymin, ymax = ax.get_ylim()
         ax.set_ylim(max(0, ymin), min(50, ymax))
         plt.tight_layout()
@@ -210,13 +277,13 @@ def best_ckpt(args, df, cache=False):
     if not (os.path.exists(csv_name) and cache):
         best_df.to_csv(csv_name, index=False)
 
-        models = glob(os.path.join(args.train_path, f'{particle}s_eta_{args.eta_slice}', 'checkpoints', f'model-{int(best_df["ckpt"])}*'))
+        models = glob.glob(os.path.join(args.train_path, f'{particle}s_eta_{args.eta_slice}', 'checkpoints', f'model-{int(best_df["ckpt"])}*'))
         for model in models:
             os.system(f'cp {model} {best_folder}')  
         plot_name = os.path.join(args.train_path, f'{particle}s_eta_{args.eta_slice}', os.path.splitext(os.path.basename(__file__))[0], f'plot_{particle}_{args.eta_slice}_{int(best_df["ckpt"])}.pdf')
         os.system(f'cp {plot_name} {best_folder}')  
 
-    vox_name = os.path.join(best_folder, f'mask_{particle}_{args.eta_slice}_{int(best_df["ckpt"])}_all.pdf')
+    vox_name = os.path.join(best_folder, 'mask', f'mask_{particle}_{args.eta_slice}_{int(best_df["ckpt"])}_all.pdf')
     if not (os.path.exists(vox_name) and cache):
         # Plot 'masking' distribution; 'masking' means to remove voxel energies below a threshold of 1keV or 1MeV
         categories, E_gan_list = get_E_gan(model_i=int(best_df["ckpt"]), input_file=args.input_file, train_path=args.train_path, eta_slice=args.eta_slice, mode='voxel')
@@ -233,11 +300,14 @@ def best_ckpt(args, df, cache=False):
                 logx=False, particle=particle, output=vox_name.replace('.pdf', '_normkin.pdf'), draw_ref=False, xlabel=xlabel)
         plot_energy_vox(categories, [E_tru_list, E_gan_list], label_list=['Geant4', 'GAN'], kin_list=kin_list, nvox='all', \
                 logx=True, particle=particle, output=vox_name.replace('.pdf', '_normkin_logx.pdf'), draw_ref=False, xlabel="$-$" + f"Log({xlabel})")
+    
+    plot_energy_layer(particle=particle, model_i=int(best_df["ckpt"]), input_file=args.input_file, train_path=args.train_path, eta_slice=args.eta_slice)
+
 
 
 def main(args):
     particle = args.input_file.split('/')[-1].split('_')[-2][:-1]
-    models = glob(os.path.join(args.train_path, f'{particle}s_eta_{args.eta_slice}', 'checkpoints', 'model-*.index'))
+    models = glob.glob(os.path.join(args.train_path, f'{particle}s_eta_{args.eta_slice}', 'checkpoints', 'model-*.index'))
     models = [int(m.split('/')[-1].split('-')[-1].split('.')[0]) for m in models]
     models.sort(reverse = True)
 
@@ -264,7 +334,7 @@ def main(args):
         df.to_csv(df_name, index=False)
         print('\033[92m[INFO] Save to\033[0m', df_name, df.shape)
 
-    best_ckpt(args, df)
+    best_ckpt(args, df, cache=True)
     
 if __name__ == '__main__':
 
