@@ -168,7 +168,19 @@ Request_disk   = 4 GB
 #Arguments = train ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo4-M1-Pslope.30
 #Queue 1
 
-Arguments = train ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo23-M1
+#Arguments = train ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo23-M1
+#Queue 1
+#Arguments = train ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo23-Mn1
+#Queue 1
+#Arguments = train ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo24-M1
+#Queue 1
+#Arguments = train ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo24-Mn1
+#Queue 1
+#Arguments = train ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo25-M1
+#Queue 1
+#Arguments = train ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo25-Mn1
+#Queue 1
+Arguments = train ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo26-M1
 Queue 1
-Arguments = train ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo23-Mn1
+Arguments = train ../input/dataset1/dataset_1_photons_1.hdf5 BNswish_hpo26-Mn1
 Queue 1

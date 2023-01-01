@@ -166,8 +166,9 @@ def main(args):
         'eta_slice': '20_25',
         'checkpoint_interval': 1000 if not args.debug else 10,
         'output': args.output_path,
-        'max_iter': 1E6 if not args.debug else 100,
+        'max_iter': 4E5 if args.loading else 1E6,
         'cache': False,
+        'loading': args.loading,
     }
 
     wgan = WGANGP(job_config=job_config, hp_config=hp_config, logger=__file__)
@@ -196,6 +197,7 @@ if __name__ == '__main__':
     parser.add_argument('--mask', type=float, required=False, default=None, help='Mask low noisy voxels in keV (default: %(default)s)')
     parser.add_argument('--debug', required=False, action='store_true', help='Debug mode (default: %(default)s)')
     parser.add_argument('-p', '--preprocess', type=str, required=False, default=None, help='Preprocessing name (default: %(default)s)')
+    parser.add_argument('-l', '--loading', type=str, required=False, default=None, help='Load model (default: %(default)s)')
 
     args = parser.parse_args()
     main(args)

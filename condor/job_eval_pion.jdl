@@ -134,10 +134,10 @@ Request_disk   = 5 GB
 #Queue 1
 #Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo17
 #Queue 1
-Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo4-M1-Plog10.10
-Queue 1
-Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo4-Mn1-Plog10.10
-Queue 1
+#Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo4-M1-Plog10.10
+#Queue 1
+#Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo4-Mn1-Plog10.10
+#Queue 1
 #Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo19-M1
 #Queue 1
 #Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo20-M1
@@ -154,24 +154,52 @@ Queue 1
 #Queue 1
 #Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo4-Mn1-Plog10.0.5
 #Queue 1
-Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo4-M1-Plog10.0.8
-Queue 1
-Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo4-Mn1-Plog10.0.8
-Queue 1
+#Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo4-M1-Plog10.0.8
+#Queue 1
+#Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo4-Mn1-Plog10.0.8
+#Queue 1
 #Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo4-M1-Plog10.0.1
 #Queue 1
 #Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo4-Mn1-Plog10.0.1
 #Queue 1
-Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo4-M1-Pscale.1
-Queue 1
-Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo4-Mn1-Pscale.1
-Queue 1
-Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo4-M1-Pscale.0.5
-Queue 1
-Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo4-Mn1-Pscale.0.5
-Queue 1
+#Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo4-M1-Pscale.1
+#Queue 1
+#Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo4-Mn1-Pscale.1
+#Queue 1
+#Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo4-M1-Pscale.0.5
+#Queue 1
+#Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo4-Mn1-Pscale.0.5
+#Queue 1
+#Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo4-Mn1-Pslope.30
+#Queue 1
+#Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo4-M1-Pslope.30
+#Queue 1
+#Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo24-M1
+#Queue 1
+#Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo24-Mn1
+#Queue 1
+#Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo24-M1000
+#Queue 1
+#Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo24-Mn1000
+#Queue 1
+#Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo23-M1
+#Queue 1
+#Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo23-Mn1
+#Queue 1
+#Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo27-M1
+#Queue 1
+#Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo27-Mn1
+#Queue 1
 
-Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo4-Mn1-Pslope.30
+Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo28-M1
 Queue 1
-Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo4-M1-Pslope.30
+Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo28-Mn1
+Queue 1
+Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo29-M1
+Queue 1
+Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo29-Mn1
+Queue 1
+Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo30-M1
+Queue 1
+Arguments = evaluate ../input/dataset1/dataset_1_pions_1.hdf5 BNReLU_hpo30-Mn1
 Queue 1

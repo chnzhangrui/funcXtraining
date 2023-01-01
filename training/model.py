@@ -20,6 +20,7 @@ from pdb import set_trace
 class WGANGP:
     def __init__(self, job_config, hp_config, logger):
         tf.keras.backend.set_floatx("float32")
+        self.loading = job_config.get('loading', None)
         
         self.model = hp_config.get('model', 'BNswish') # default to photon GAN BNswish
         self.G_size = hp_config.get('G_size', 1)
@@ -49,6 +50,8 @@ class WGANGP:
         self.eta_slice = job_config.get('eta_slice', '20_25')
         self.checkpoint_interval = job_config.get('checkpoint_interval', 1000)
         self.output = os.path.join(job_config.get('output', '../output'), f'{self.particle}_eta_{self.eta_slice}')
+        if self.loading is not None:
+            self.output += '_load'
         self.train_folder = os.path.join(self.output, os.path.splitext(os.path.basename(logger))[0])
         self.no_output = ('evaluate' in logger)
         os.makedirs(self.train_folder, exist_ok=True)
@@ -340,7 +343,11 @@ class WGANGP:
         self.X = tf.convert_to_tensor(X_train, dtype=tf.float32)
         self.Labels = tf.convert_to_tensor(label, dtype=tf.float32)
         self.getTrainData_ultimate(self.max_iter)
-        
+
+        if self.loading is not None:
+            self.saver.restore(self.loading)
+            logging.info(f"Load model from {self.loading}")
+
         for iteration in range(0, self.max_iter + 1):
             if iteration % self.checkpoint_interval == 0:
                 if len(existing_models) > 1:

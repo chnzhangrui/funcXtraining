@@ -100,14 +100,15 @@ def plot_energy_layer(particle, model_i, input_file, train_path, eta_slice):
         config = {
             'plot_chi2': False,
             'ax_text': ax_text,
-            'ax_pos': (0.4, 0.93),
-            'leg_loc': "best",
+            'ax_pos': (0.4, 0.2),
+            'leg_loc': "lower center",
             'logx': True,
             'logy': True,
             'range_factor_factor': (30000, 20000),
             'leg_size': 10,
             'nbins': 80,
             'output_name': plot_name,
+            'lw': 1,
         }
         plot_Etot([''], E_vox_list_merge_energy[ilayer], E_gan_list_merge_energy[ilayer], config=config)
 
@@ -138,6 +139,7 @@ def plot_Etot(categories, Etot_list, Egan_list, config=None):
     plot_range_factor = config.get('range_factor_factor', (2, 10))
     leg_size = config.get('leg_size', 20)
     nbins = config.get('nbins', 30)
+    lw = config.get('lw', 2)
 
     fig, axes = plot_frame(categories, xlabel="Energy [GeV]", ylabel="Entries")
     results = []
@@ -158,8 +160,8 @@ def plot_Etot(categories, Etot_list, Egan_list, config=None):
             bins = get_bins_given_edges(low if low > 0 else 0.00001, high, nbins, 9, logscale=logx)
         else:
             bins = get_bins_given_edges(low, high, nbins, 3, logscale=logx)
-        y_tot, x_tot, _ = ax.hist(np.clip(etot, bins[0], bins[-1]), bins=bins, label='G4', histtype='step', density=False, color='k', linestyle='-', alpha=0.8, linewidth=2.)
-        y_gan, x_gan, _ = ax.hist(np.clip(egan, bins[0], bins[-1]), bins=bins, label='GAN', histtype='step', density=False, color='r', linestyle='--', alpha=0.8, linewidth=2.)
+        y_tot, x_tot, _ = ax.hist(np.clip(etot, bins[0], bins[-1]), bins=bins, label='G4', histtype='step', density=False, color='k', linestyle='-', alpha=0.8, linewidth=lw)
+        y_gan, x_gan, _ = ax.hist(np.clip(egan, bins[0], bins[-1]), bins=bins, label='GAN', histtype='step', density=False, color='r', linestyle='--', alpha=0.8, linewidth=lw)
         y_tot_err = np.sqrt(y_tot)
         y_gan_err = np.sqrt(y_gan)
         chi2, ndf = chi2testWW(y_tot, y_tot_err, y_gan, y_gan_err)
@@ -252,7 +254,10 @@ def best_ckpt(args, df, cache=False):
             ax.scatter(x, chi2_list[index], c="k", edgecolors="k", alpha=0.9)
             best_x_i = int(df[df[f'{energy} MeV'] == df[f'{energy} MeV'].min()]['ckpt'] * 1000)
             best_y_i = df[f'{energy} MeV'].min()
-            best_y_j = float(df[df['ckpt']==int(best_x/1000)][f'{energy} MeV'])
+            try:
+                best_y_j = float(df[df['ckpt']==int(best_x/1000)][f'{energy} MeV'])
+            except:
+                set_trace()
             ax.scatter(best_x_i, best_y_i, c="orange")
             ax.scatter(best_x, best_y_j, c="r")
             ax.text(0.98, 0.97, "Iter {}\n$\chi^2$ = {:.1f}\nSel. iter {}\n$\chi^2$ = {:.1f}".format(best_x_i, best_y_i, best_x, best_y_j), transform=ax.transAxes, va="top", ha="right", fontsize=10, bbox=dict(facecolor='w', alpha=0.8, edgecolor='w'))
@@ -331,7 +336,7 @@ def main(args):
         if os.path.exists(df_name):
             df_old = pd.read_csv(df_name)
             df = pd.concat([df, df_old]).drop_duplicates().reset_index(drop=True)
-        df.to_csv(df_name, index=False)
+        df.sort_values(by=['ckpt']).to_csv(df_name, index=False)
         print('\033[92m[INFO] Save to\033[0m', df_name, df.shape)
 
     best_ckpt(args, df, cache=True)
