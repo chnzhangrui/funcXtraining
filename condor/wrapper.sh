@@ -21,8 +21,8 @@ echo prep=$prep
 echo loading=$loading
 
 if [[ $mask == ?(n)+([0-9]) ]]; then
-    version='v2'
-    train_addition="--mask=${mask//n/-}"
+    version='v3'
+    train_addition="--mask=${mask//n/-} --add_noise"
 else
     version='v1'
     train_addition=""

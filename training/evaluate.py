@@ -41,11 +41,11 @@ def get_E_truth(input_file, mode='total'):
     categories, vector_list = split_energy(input_file, vector)
     return categories, vector_list
 
-def get_E_gan(model_i, input_file, train_path, eta_slice, mode='total', preprocess=None):
+def get_E_gan(model_i, input_file, train_path, eta_slice, mode='total', preprocess=None, suffix=''):
     kin, particle = get_kin(input_file)
     label_kin = kin_to_label(kin)
 
-    config = json.load(open(os.path.join(train_path, f'{particle}s_eta_{eta_slice}', 'train', 'config.json')))
+    config = json.load(open(os.path.join(train_path, f'{particle}s_eta_{eta_slice}{suffix}', 'train', 'config.json')))
 
     wgan = WGANGP(job_config=config['job_config'], hp_config=config['hp_config'], logger=__file__)
     E_vox = wgan.predict(model_i=model_i, labels=label_kin)
@@ -54,7 +54,7 @@ def get_E_gan(model_i, input_file, train_path, eta_slice, mode='total', preproce
                 or re.compile("^scale.([0-9.]+)+$").match(preprocess) \
                 or re.compile("^slope.([0-9.]+)+$").match(preprocess)
             ): # log10.x, scale.x, slope
-            scale = os.path.join(train_path, f'{particle}s_eta_{eta_slice}', 'train', f'scale_{preprocess}.json')
+            scale = os.path.join(train_path, f'{particle}s_eta_{eta_slice}{suffix}', 'train', f'scale_{preprocess}.json')
             E_vox = preprocessing(E_vox, kin, name=preprocess, reverse=True, input_file=scale)
     else:
         E_vox = preprocessing(E_vox, kin, name=preprocess, reverse=True)
@@ -86,7 +86,8 @@ def plot_energy_layer(particle, model_i, input_file, train_path, eta_slice):
         concate = np.concatenate(E_list, axis=0)
         return [concate.flatten()]
 
-    categories1, E_gan_list = get_E_gan(model_i, input_file=input_file, train_path=train_path, eta_slice=eta_slice, mode='layer')
+    suffix = '_load' if args.loading else ''
+    categories1, E_gan_list = get_E_gan(model_i, input_file=input_file, train_path=train_path, eta_slice=eta_slice, mode='layer', suffix=suffix)
     categories2, E_vox_list = get_E_truth(input_file, mode='layer')
 
     E_vox_list_merge_energy, E_gan_list_merge_energy = {}, {}
@@ -96,11 +97,11 @@ def plot_energy_layer(particle, model_i, input_file, train_path, eta_slice):
 
     for ilayer in E_vox_list.keys():
         ax_text = particle_latex_name(particle) + ' Layer {}'.format(ilayer)
-        plot_name = os.path.join(args.train_path, f'{particle}s_eta_{args.eta_slice}', 'selected', 'layer', f'plot_{particle}_{args.eta_slice}_{model_i}_layer{ilayer}.pdf')
+        plot_name = os.path.join(args.train_path, f'{particle}s_eta_{args.eta_slice}{suffix}', 'selected', 'layer', f'plot_{particle}_{args.eta_slice}_{model_i}_layer{ilayer}.pdf')
         config = {
             'plot_chi2': False,
             'ax_text': ax_text,
-            'ax_pos': (0.4, 0.2),
+            'ax_pos': (0.38, 0.19),
             'leg_loc': "lower center",
             'logx': True,
             'logy': True,
@@ -156,6 +157,10 @@ def plot_Etot(categories, Etot_list, Egan_list, config=None):
         median = np.median(etot)
         high = median + min([np.absolute(np.max(etot) - median), np.absolute(np.quantile(etot, q=1-0.05) - median) * plot_range_factor[0], np.absolute(np.quantile(etot, q=1-0.16) - median) * plot_range_factor[1]])
         low  = median - min([np.absolute(np.min(etot) - median), np.absolute(np.quantile(etot, q=0.05) - median) * plot_range_factor[0], np.absolute(np.quantile(etot, q=1-0.16) - median) * plot_range_factor[1]])
+
+        #logx=False
+        #low = 0
+        #high= 0.1
         if logx:
             bins = get_bins_given_edges(low if low > 0 else 0.00001, high, nbins, 9, logscale=logx)
         else:
@@ -178,7 +183,7 @@ def plot_Etot(categories, Etot_list, Egan_list, config=None):
     handles, labels = ax.get_legend_handles_labels()
 
     chi2_o_ndf = chi2_tot/ndf_tot
-    results.insert(1, (f'All', chi2_o_ndf))
+    results.insert(0, (f'All', chi2_o_ndf))
     ax = axes[-1]
     ax.legend(handles=handles[:2], labels=["Geant4", "GAN"], loc=leg_loc, frameon=False, fontsize=leg_size)
     if plot_chi2:
@@ -202,8 +207,9 @@ def plot_Etot(categories, Etot_list, Egan_list, config=None):
 def plot_model_i(args, model_i):
     start_time = time.time()
     particle = args.input_file.split('/')[-1].split('_')[-2][:-1]
-    df_name = os.path.join(args.train_path, f'{particle}s_eta_{args.eta_slice}', os.path.splitext(os.path.basename(__file__))[0], f'chi2.csv')
-    plot_name = os.path.join(args.train_path, f'{particle}s_eta_{args.eta_slice}', os.path.splitext(os.path.basename(__file__))[0], f'plot_{particle}_{args.eta_slice}_{model_i}.pdf')
+    suffix = '_load' if args.loading else ''
+    df_name = os.path.join(args.train_path, f'{particle}s_eta_{args.eta_slice}{suffix}', os.path.splitext(os.path.basename(__file__))[0], f'chi2.csv')
+    plot_name = os.path.join(args.train_path, f'{particle}s_eta_{args.eta_slice}{suffix}', os.path.splitext(os.path.basename(__file__))[0], f'plot_{particle}_{args.eta_slice}_{model_i}.pdf')
     if os.path.exists(df_name) and os.path.exists(plot_name):
         df = pd.read_csv(df_name)
         if model_i in df['ckpt'].values:
@@ -214,7 +220,7 @@ def plot_model_i(args, model_i):
     categories, Etot_list = get_E_truth(args.input_file)
     truth_time = time.time() - start_time
     start_time = time.time()
-    categories, Egan_list = get_E_gan(model_i=model_i, input_file=args.input_file, train_path=args.train_path, eta_slice=args.eta_slice, preprocess=args.preprocess)
+    categories, Egan_list = get_E_gan(model_i=model_i, input_file=args.input_file, train_path=args.train_path, eta_slice=args.eta_slice, preprocess=args.preprocess, suffix=suffix)
     gan_time = time.time() - start_time
     start_time = time.time()
 
@@ -236,8 +242,9 @@ def chunks(lst, n):
         yield lst[i:i + n]
 
 def best_ckpt(args, df, cache=False):
+    suffix = '_load' if args.loading else ''
     particle = args.input_file.split('/')[-1].split('_')[-2][:-1]
-    best_folder = os.path.join(args.train_path, f'{particle}s_eta_{args.eta_slice}', 'selected')
+    best_folder = os.path.join(args.train_path, f'{particle}s_eta_{args.eta_slice}{suffix}', 'selected')
     chi_name = os.path.join(best_folder, 'chi2.pdf')
     if not (os.path.exists(chi_name) and cache):
         os.makedirs(best_folder, exist_ok=True)
@@ -282,16 +289,16 @@ def best_ckpt(args, df, cache=False):
     if not (os.path.exists(csv_name) and cache):
         best_df.to_csv(csv_name, index=False)
 
-        models = glob.glob(os.path.join(args.train_path, f'{particle}s_eta_{args.eta_slice}', 'checkpoints', f'model-{int(best_df["ckpt"])}*'))
+        models = glob.glob(os.path.join(args.train_path, f'{particle}s_eta_{args.eta_slice}{suffix}', 'checkpoints', f'model-{int(best_df["ckpt"])}*'))
         for model in models:
             os.system(f'cp {model} {best_folder}')  
-        plot_name = os.path.join(args.train_path, f'{particle}s_eta_{args.eta_slice}', os.path.splitext(os.path.basename(__file__))[0], f'plot_{particle}_{args.eta_slice}_{int(best_df["ckpt"])}.pdf')
+        plot_name = os.path.join(args.train_path, f'{particle}s_eta_{args.eta_slice}{suffix}', os.path.splitext(os.path.basename(__file__))[0], f'plot_{particle}_{args.eta_slice}_{int(best_df["ckpt"])}.pdf')
         os.system(f'cp {plot_name} {best_folder}')  
 
     vox_name = os.path.join(best_folder, 'mask', f'mask_{particle}_{args.eta_slice}_{int(best_df["ckpt"])}_all.pdf')
     if not (os.path.exists(vox_name) and cache):
         # Plot 'masking' distribution; 'masking' means to remove voxel energies below a threshold of 1keV or 1MeV
-        categories, E_gan_list = get_E_gan(model_i=int(best_df["ckpt"]), input_file=args.input_file, train_path=args.train_path, eta_slice=args.eta_slice, mode='voxel')
+        categories, E_gan_list = get_E_gan(model_i=int(best_df["ckpt"]), input_file=args.input_file, train_path=args.train_path, eta_slice=args.eta_slice, mode='voxel', suffix=suffix)
         categories, E_tru_list = get_E_truth(args.input_file, mode='voxel')
         kin, particle = get_kin(args.input_file)
         categories, kin_list = split_energy(args.input_file, kin)
@@ -312,12 +319,13 @@ def best_ckpt(args, df, cache=False):
 
 def main(args):
     particle = args.input_file.split('/')[-1].split('_')[-2][:-1]
-    models = glob.glob(os.path.join(args.train_path, f'{particle}s_eta_{args.eta_slice}', 'checkpoints', 'model-*.index'))
+    suffix = '_load' if args.loading else ''
+    models = glob.glob(os.path.join(args.train_path, f'{particle}s_eta_{args.eta_slice}{suffix}', 'checkpoints', 'model-*.index'))
     models = [int(m.split('/')[-1].split('-')[-1].split('.')[0]) for m in models]
     models.sort(reverse = True)
 
     if not models:
-        print('\033[91m[ERROR] No model is found at\033[0m', os.path.join(args.train_path, f'{particle}s_eta_{args.eta_slice}', 'checkpoints', 'model-*.index'))
+        print('\033[91m[ERROR] No model is found at\033[0m', os.path.join(args.train_path, f'{particle}s_eta_{args.eta_slice}{suffix}', 'checkpoints', 'model-*.index'))
         return
     else:
         print('\033[92m[INFO] Evaluate\033[0m', particle, args.input_file, f'| {len(models)} models')
@@ -332,11 +340,11 @@ def main(args):
         arguments = (repeat(args), models)
         results = execute_multi_tasks(plot_model_i, *arguments, parallel=-1)
         df = pd.DataFrame(results).sort_values(by=['ckpt'])
-        df_name = os.path.join(args.train_path, f'{particle}s_eta_{args.eta_slice}', os.path.splitext(os.path.basename(__file__))[0], f'chi2.csv')
+        df_name = os.path.join(args.train_path, f'{particle}s_eta_{args.eta_slice}{suffix}', os.path.splitext(os.path.basename(__file__))[0], f'chi2.csv')
         if os.path.exists(df_name):
             df_old = pd.read_csv(df_name)
-            df = pd.concat([df, df_old]).drop_duplicates().reset_index(drop=True)
-        df.sort_values(by=['ckpt']).to_csv(df_name, index=False)
+            df = pd.concat([df, df_old]).drop_duplicates(subset=['ckpt']).reset_index(drop=True)
+        df.sort_values(by=['ckpt']).drop_duplicates().reset_index(drop=True).to_csv(df_name, index=False)
         print('\033[92m[INFO] Save to\033[0m', df_name, df.shape)
 
     best_ckpt(args, df, cache=True)
@@ -350,7 +358,8 @@ if __name__ == '__main__':
     parser.add_argument('-e', '--eta_slice', type=str, required=False, default='20_25', help='--out_path from train.py (default: %(default)s)')
     parser.add_argument('--debug', required=False, action='store_true', help='Debug mode (default: %(default)s)')
     parser.add_argument('-p', '--preprocess', type=str, required=False, default=None, help='Preprocessing name (default: %(default)s)')
-    parser.add_argument('-l', '--local', required=False, action='store_true', help='Split evaluation into chunks (default: %(default)s)')
+    parser.add_argument('--local', required=False, action='store_true', help='Split evaluation into chunks (default: %(default)s)')
+    parser.add_argument('-l', '--loading', type=str, required=False, default=None, help='Load model (default: %(default)s)')
 
     args = parser.parse_args()
     main(args)

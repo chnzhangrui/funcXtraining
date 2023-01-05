@@ -12,16 +12,17 @@ def completion_check(ifile):
     return df.shape[0]
 
 def main(args):
-    files = glob(f'{args.input}/*/*[!.pdf]')
+    files = glob(f'{args.input}/**/*eta*[!p][!d][!f]/', recursive=True)
     exclude = ['slope_study']
     files = [i for i in files for j in exclude if j not in i]
 
     def get_info(path):
-        task = path.split('/')[-2].split('_')
-        job = path.split('/')[-1].split('_')
+        task = path.split('/')[-3].split('_')
+        job = path.split('/')[-2].split('_')
+        folder =  path.split('/')[-4]
         if len(task) < 2 or len(job) < 4:
             print('\033[91m[ERROR] job not found in\033[0m', f'{path}')
-        return tuple([task[0], task[1], job[0], job[2], job[3]])
+        return tuple([task[0], task[1], job[0], job[2], job[3], folder])
 
     pid = {
         'pions': 211,
@@ -30,10 +31,10 @@ def main(args):
         'protons': 2212,
     }
 
-    results = {'particle': [], 'eta': [], 'model': [], 'hp': [], 'chi2': [], 'iter': [], 'total': []}
+    results = {'particle': [], 'eta': [], 'model': [], 'hp': [], 'chi2': [], 'iter': [], 'total': [], 'folder': []}
 
     for ifile in files:
-        model, hp, particle, eta_min, eta_max = get_info(ifile)
+        model, hp, particle, eta_min, eta_max, folder = get_info(ifile)
         csv_file = f'{ifile}/selected/chi2.csv'
         if not os.path.exists(csv_file):
             print('\033[92m[INFO] Unfinished job\033[0m', f'{csv_file}')
@@ -50,6 +51,7 @@ def main(args):
         results['chi2'].append(chi2)
         results['iter'].append(iteration)
         results['total'].append(tot_iter)
+        results['folder'].append(folder)
     dfs = pd.DataFrame.from_dict(results).sort_values(by=['particle', 'eta', 'model', 'hp'])
     for particle, df in dfs.groupby(by=['particle']):
         df.to_csv(f'{args.input}/results_{particle}.csv', index=False)

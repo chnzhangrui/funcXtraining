@@ -24,6 +24,7 @@ def get_best_mode_i(train_path, particle, eta_slice='20_25'):
 def particle_mass(particle=None):
     if 'photon' in particle or particle == 22:
         mass = 0
+        #mass = 100
     elif 'electron' in particle or particle == 11:
         mass = 0.512
     elif 'pion' in particle or particle == 211:

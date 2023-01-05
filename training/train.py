@@ -11,9 +11,14 @@ from data import *
 import re
 np.set_printoptions(suppress=True)
 
-def apply_mask(mask, X_train, input_file):
+def apply_mask(mask, X_train, input_file, add_noise=False):
     np.seterr(divide = 'ignore', invalid='ignore')
     event_energy_before = X_train.sum(axis=1)[:]
+    if add_noise:
+        # X_train is in MeV, add uniform noise of [0, 0.1keV]
+        X_train += np.random.uniform(low=0, high=0.0001, size=X_train.shape)
+        print('\033[92m[INFO] Add noise\033[0m', 0, 0.1, '[keV] for voxel energy')
+    event_energy_before2 = X_train.sum(axis=1)[:]
 
     # mask too low energy to zeros
     if isinstance(mask, (int, float)):
@@ -28,13 +33,13 @@ def apply_mask(mask, X_train, input_file):
 
     # plot energy change before and after masking
     event_energy_after  = X_train.sum(axis=1)[:]
-    event_energy = np.concatenate([event_energy_before.reshape(-1,1), event_energy_after.reshape(-1,1)], axis=1)
+    event_energy = np.concatenate([event_energy_before.reshape(-1,1), event_energy_before2.reshape(-1,1), event_energy_after.reshape(-1,1)], axis=1)
 
     categories, vector_list  = split_energy(input_file, event_energy)
     fig, axes = plot_frame(categories, xlabel="Rel. change in E total", ylabel="Events")
     for index, energy in enumerate(categories):
         ax = axes[index]
-        before, after = vector_list[index][:,0], vector_list[index][:,1]
+        before, after = vector_list[index][:,0], vector_list[index][:,-1]
         x = 1 - np.divide(after, before, out=np.zeros_like(before), where=before!=0)
         if x.max() < 1E-4:
             high = 1E-4
@@ -104,7 +109,7 @@ def main(args):
             mask = dict(zip(list(np.unique(energies)), mask))
         else:
             mask = args.mask
-        X_train = apply_mask(mask, X_train, input_file)
+        X_train = apply_mask(mask, X_train, input_file, add_noise=args.add_noise)
 
     if args.preprocess is not None:
         if (re.compile("^log10.([0-9.]+)+$").match(args.preprocess) \
@@ -198,6 +203,7 @@ if __name__ == '__main__':
     parser.add_argument('--debug', required=False, action='store_true', help='Debug mode (default: %(default)s)')
     parser.add_argument('-p', '--preprocess', type=str, required=False, default=None, help='Preprocessing name (default: %(default)s)')
     parser.add_argument('-l', '--loading', type=str, required=False, default=None, help='Load model (default: %(default)s)')
+    parser.add_argument('--add_noise', required=False, action='store_true', help='Add noise (default: %(default)s)')
 
     args = parser.parse_args()
     main(args)
