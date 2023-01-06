@@ -347,7 +347,7 @@ def main(args):
         df.sort_values(by=['ckpt']).drop_duplicates().reset_index(drop=True).to_csv(df_name, index=False)
         print('\033[92m[INFO] Save to\033[0m', df_name, df.shape)
 
-    best_ckpt(args, df, cache=True)
+    best_ckpt(args, df, cache=False)
     
 if __name__ == '__main__':
 
