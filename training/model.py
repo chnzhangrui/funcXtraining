@@ -71,6 +71,10 @@ class WGANGP:
             random.seed(11)
             np.random.seed(11)
             tf.random.set_seed(11)
+            if self.loading is not None:
+                random.seed(22)
+                np.random.seed(22)
+                tf.random.set_seed(22)
 
         # Construct D and G models
         self.G = self.make_generator_functional_model()
