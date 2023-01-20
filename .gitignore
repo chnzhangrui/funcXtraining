@@ -6,3 +6,5 @@ output
 **/.Xauthority
 **/.bash_history
 condor/log/
+.venv/
+*.egg-info/
