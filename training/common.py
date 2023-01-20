@@ -1,5 +1,7 @@
 import numpy as np
-import h5py, os, glob
+import h5py
+import os
+import glob
 import pandas as pd
 import matplotlib.pyplot as plt
 from pdb import set_trace

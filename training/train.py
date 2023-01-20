@@ -1,17 +1,20 @@
 # use code from https://github.com/CaloChallenge/homepage/blob/main/code/HighLevelFeatures.ipynb
-from argparse import ArgumentParser
-from HighLevelFeatures import HighLevelFeatures
 import numpy as np
-import h5py, os, json
-import matplotlib.pyplot as plt
-from model import WGANGP
-from pdb import set_trace
-from common import *
-from data import *
-import re
+from argparse import ArgumentParser
+
+from funcx import FuncXExecutor
+
 np.set_printoptions(suppress=True)
 
 def apply_mask(mask, X_train, input_file, add_noise=False):
+    import os
+    import numpy as np
+    from matplotlib import pyplot as plt
+    
+    from training.common import get_energies
+    from training.common import split_energy
+    from training.common import plot_frame
+    
     np.seterr(divide = 'ignore', invalid='ignore')
     event_energy_before = X_train.sum(axis=1)[:]
     if add_noise:
@@ -89,6 +92,20 @@ def apply_mask(mask, X_train, input_file, add_noise=False):
     return X_train
 
 def main(args):
+    #from HighLevelFeatures import HighLevelFeatures
+    import numpy as np
+    import h5py, os, json
+    import matplotlib.pyplot as plt
+    from pdb import set_trace
+    from training.common import get_energies
+    from training.common import get_kin
+    from training.common import kin_to_label
+    from training.data import preprocessing
+    from training.model import WGANGP
+    from training.train import plot_input
+    #from data import *
+    import re
+
     # creating instance of HighLevelFeatures class to handle geometry based on binning file
     input_file = args.input_file
     particle = input_file.split('/')[-1].split('_')[-2][:-1]
@@ -169,9 +186,9 @@ def main(args):
     job_config = {
         'particle': particle+'s',
         'eta_slice': '20_25',
-        'checkpoint_interval': 1000 if not args.debug else 10,
+        'checkpoint_interval': 1, #1000 if not args.debug else 10,
         'output': args.output_path,
-        'max_iter': 4E5 if args.loading else 1E6,
+        'max_iter': 2, #4E5 if args.loading else 1E6,
         'cache': False,
         'loading': args.loading,
     }
@@ -183,7 +200,14 @@ def main(args):
     plot_input(args, X_train, output=wgan.train_folder)
     wgan.train(X_train, label_kin)
 
+
 def plot_input(args, X_train, output):
+    import os
+    
+    from training.common import get_kin
+    from training.common import split_energy
+    from training.common import plot_energy_vox
+    
     kin, particle = get_kin(args.input_file)
     categories, xtrain_list = split_energy(args.input_file, X_train)
     out_file = os.path.join(output, f'input_{particle}_{args.preprocess}.pdf')
@@ -192,6 +216,7 @@ def plot_input(args, X_train, output):
     print('\033[92m[INFO] Save to\033[0m', out_file)
 
 if __name__ == '__main__':
+    import time
 
     """Get arguments from command line."""
     parser = ArgumentParser(description="\033[92mConfig for training.\033[0m")
@@ -204,6 +229,16 @@ if __name__ == '__main__':
     parser.add_argument('-p', '--preprocess', type=str, required=False, default=None, help='Preprocessing name (default: %(default)s)')
     parser.add_argument('-l', '--loading', type=str, required=False, default=None, help='Load model (default: %(default)s)')
     parser.add_argument('--add_noise', required=False, action='store_true', help='Add noise (default: %(default)s)')
+    parser.add_argument('--endpoint_id', required=False, type=str, default=None, help='FuncX Endpoint ID')
 
     args = parser.parse_args()
-    main(args)
+
+    # example where we parallelize over the models
+    models = [ "BNswish" ] #, "GANv1", "BNReLU", "BNswish"] #, "BNswishHe", "BNLeakyReLU", "noBN", "SN"]
+    results = []
+    with FuncXExecutor(endpoint_id=args.endpoint_id) as fxe:
+        for m in models: # Iterate through all the models and submit tasks for each model
+            args.model = m
+            results.append(fxe.submit(main, args))
+
+    _ = [r.result() for r in results] # Acquire the result
