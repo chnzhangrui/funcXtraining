@@ -49,7 +49,7 @@ class WGANGP:
         self.particle = job_config.get('particle', 'photons')
         self.eta_slice = job_config.get('eta_slice', '20_25')
         self.checkpoint_interval = job_config.get('checkpoint_interval', 1000)
-        self.output = os.path.join(job_config.get('output', '../output'), f'{self.particle}_eta_{self.eta_slice}')
+        self.output = os.path.join(job_config.get('output', '../output'), hp_config['model'], f'{self.particle}_eta_{self.eta_slice}')
         if self.loading is not None:
             self.output += '_load'
         self.train_folder = os.path.join(self.output, os.path.splitext(os.path.basename(logger))[0])

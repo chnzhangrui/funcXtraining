@@ -91,7 +91,7 @@ def apply_mask(mask, X_train, input_file, add_noise=False):
     # return masked input
     return X_train
 
-def main(args):
+def main(args, model):
     #from HighLevelFeatures import HighLevelFeatures
     import numpy as np
     import h5py, os, json
@@ -140,7 +140,7 @@ def main(args):
 
     if 'photon' in particle:
         hp_config = {
-            'model': args.model if args.model else 'BNswish',
+            'model': model if model else 'BNswish',
             'G_size': 1,
             'D_size': 1,
             'optimizer': 'adam',
@@ -160,7 +160,7 @@ def main(args):
         }
     else: # pion
         hp_config = {
-            'model': args.model if args.model else 'noBN',
+            'model': model if model else 'noBN',
             'G_size': 1,
             'D_size': 1,
             'optimizer': 'adam',
@@ -217,13 +217,15 @@ def plot_input(args, X_train, output):
 
 if __name__ == '__main__':
     import time
+    
+    all_models = [ 'GANv1', 'BNReLU', "BNswish", "BNswishHe", "BNLeakyReLU", "noBN", "SN" ]
 
     """Get arguments from command line."""
     parser = ArgumentParser(description="\033[92mConfig for training.\033[0m")
     parser.add_argument('-i', '--input_file', type=str, required=False, default='', help='Training h5 file name (default: %(default)s)')
     parser.add_argument('-o', '--output_path', type=str, required=True, default='../output/dataset1/v1', help='Training h5 file path (default: %(default)s)')
     parser.add_argument('-c', '--config', type=str, required=False, default=None, help='External config file (default: %(default)s)')
-    parser.add_argument('-m', '--model', type=str, required=False, default=None, help='Model name (default: %(default)s)')
+    parser.add_argument('-m', '--models', nargs='*', required=False, default=all_models, choices=all_models, help='Models to train (default: %(default)s)')
     parser.add_argument('--mask', type=float, required=False, default=None, help='Mask low noisy voxels in keV (default: %(default)s)')
     parser.add_argument('--debug', required=False, action='store_true', help='Debug mode (default: %(default)s)')
     parser.add_argument('-p', '--preprocess', type=str, required=False, default=None, help='Preprocessing name (default: %(default)s)')
@@ -234,11 +236,14 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # example where we parallelize over the models
-    models = [ "BNswish" ] #, "GANv1", "BNReLU", "BNswish"] #, "BNswishHe", "BNLeakyReLU", "noBN", "SN"]
-    results = []
-    with FuncXExecutor(endpoint_id=args.endpoint_id) as fxe:
-        for m in models: # Iterate through all the models and submit tasks for each model
-            args.model = m
-            results.append(fxe.submit(main, args))
+    
+    if args.endpoint_id is not None: # if we execute with funcX
+        results = []
+        with FuncXExecutor(endpoint_id=args.endpoint_id) as fxe:
+            for m in args.models: # Iterate through all the models and submit tasks for each model
+                results.append(fxe.submit(main, args, m))
 
-    _ = [r.result() for r in results] # Acquire the result
+        _ = [r.result() for r in results] # Acquire the result
+    else: # What execution would look like without funcX (i.e., sequential execution)
+        for m in args.model:
+            main(args, model=m)
