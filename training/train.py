@@ -186,9 +186,9 @@ def main(args, model):
     job_config = {
         'particle': particle+'s',
         'eta_slice': '20_25',
-        'checkpoint_interval': 1, #1000 if not args.debug else 10,
+        'checkpoint_interval': 1 if args.example_run else 1000 if not args.debug else 10,
         'output': args.output_path,
-        'max_iter': 2, #4E5 if args.loading else 1E6,
+        'max_iter': 2 if args.example_run else 4E5 if args.loading else 1E6,
         'cache': False,
         'loading': args.loading,
     }
@@ -218,7 +218,7 @@ def plot_input(args, X_train, output):
 if __name__ == '__main__':
     import time
     
-    all_models = [ 'GANv1', 'BNReLU', "BNswish", "BNswishHe", "BNLeakyReLU", "noBN", "SN" ]
+    all_models = [ 'GANv1', 'BNReLU', 'BNswish', 'BNswishHe', 'BNLeakyReLU', 'noBN', 'SN' ]
 
     """Get arguments from command line."""
     parser = ArgumentParser(description="\033[92mConfig for training.\033[0m")
@@ -231,7 +231,8 @@ if __name__ == '__main__':
     parser.add_argument('-p', '--preprocess', type=str, required=False, default=None, help='Preprocessing name (default: %(default)s)')
     parser.add_argument('-l', '--loading', type=str, required=False, default=None, help='Load model (default: %(default)s)')
     parser.add_argument('--add_noise', required=False, action='store_true', help='Add noise (default: %(default)s)')
-    parser.add_argument('--endpoint_id', required=False, type=str, default=None, help='FuncX Endpoint ID')
+    parser.add_argument('--endpoint-id', required=False, type=str, default=None, help='FuncX Endpoint ID')
+    parser.add_argument('--example-run', required=False, action="store_true", default=False, help='Run with only 2 max intervals and 1 checkpoint interval')
 
     args = parser.parse_args()
 
