@@ -218,7 +218,8 @@ def plot_input(args, X_train, output):
 if __name__ == '__main__':
     import time
     
-    all_models = [ 'GANv1', 'BNReLU', 'BNswish', 'BNswishHe', 'BNLeakyReLU', 'noBN', 'SN' ]
+    #all_models = [ 'GANv1', 'BNReLU', 'BNswish', 'BNswishHe', 'BNLeakyReLU', 'noBN', 'SN' ]
+    all_models = [ 'GANv1' ]
 
     """Get arguments from command line."""
     parser = ArgumentParser(description="\033[92mConfig for training.\033[0m")
